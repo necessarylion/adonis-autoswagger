@@ -887,8 +887,12 @@ export class ValidatorParser {
         maximum?: number;
         choices?: any;
         pattern?: string;
+        example?: any;
       } = {};
       for (const v of p["validations"]) {
+        if (refs[v["ruleFnId"]].options?.example) {
+          meta = { ...meta, example: refs[v["ruleFnId"]].options.example };
+        }
         if (refs[v["ruleFnId"]].options?.min) {
           meta = { ...meta, minimum: refs[v["ruleFnId"]].options.min };
         }
@@ -921,17 +925,13 @@ export class ValidatorParser {
                   }
                   : {
                     type: "number",
-                    example: meta.minimum
-                      ? meta.minimum
-                      : this.exampleGenerator.exampleByType("number"),
+                    example: meta.example ?? meta.minimum ?? this.exampleGenerator.exampleByType("number"),
                     ...meta,
                   },
             }
             : {
               type: "number",
-              example: meta.minimum
-                ? meta.minimum
-                : this.exampleGenerator.exampleByType("number"),
+              example: meta.example ?? meta.minimum ?? this.exampleGenerator.exampleByType("number"),
               ...meta,
             };
       if (!p["isOptional"]) obj[p["fieldName"]]["required"] = true;
@@ -1049,7 +1049,8 @@ export class InterfaceParser {
           extends: extendedTypes,
           properties: {},
           required: [],
-          startLine: i
+          startLine: i,
+          examples: {}
         });
         currentInterface = name;
         continue;
@@ -1066,6 +1067,9 @@ export class InterfaceParser {
           const previousLine = i > 0 ? lines[i - 1].trim() : "";
           const isRequired = previousLine.includes("@required");
 
+          // extract example value from comment @example(john)
+          const example = previousLine.match(/@example\((.*)\)/)?.[1];
+
           const [prop, type] = line.split(":").map(s => s.trim());
           if (prop && type) {
             const cleanProp = prop.replace("?", "");
@@ -1075,6 +1079,8 @@ export class InterfaceParser {
             if (isRequired || !prop.includes("?")) {
               def.required.push(cleanProp);
             }
+            
+            if (example) def.examples[cleanProp] = example;
           }
         }
       }
@@ -1105,6 +1111,9 @@ export class InterfaceParser {
           parsedProperties[key] = value;
         } else {
           parsedProperties[key] = this.parseType(value, key);
+        }
+        if (def.examples[key]) {
+          parsedProperties[key].example = def.examples[key];
         }
       }
 
