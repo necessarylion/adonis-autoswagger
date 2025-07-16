@@ -882,61 +882,79 @@ export class ValidatorParser {
   parseSchema(json, refs) {
     const obj = {};
     for (const p of json["properties"]) {
-      let meta: {
-        minimum?: number;
-        maximum?: number;
-        choices?: any;
-        pattern?: string;
-        example?: any;
-      } = {};
-      for (const v of p["validations"]) {
-        if (refs[v["ruleFnId"]].options?.example) {
-          meta = { ...meta, example: refs[v["ruleFnId"]].options.example };
-        }
-        if (refs[v["ruleFnId"]].options?.min) {
-          meta = { ...meta, minimum: refs[v["ruleFnId"]].options.min };
-        }
-        if (refs[v["ruleFnId"]].options?.max) {
-          meta = { ...meta, maximum: refs[v["ruleFnId"]].options.max };
-        }
-        if (refs[v["ruleFnId"]].options?.choices) {
-          meta = { ...meta, choices: refs[v["ruleFnId"]].options.choices };
-        }
-        if (refs[v["ruleFnId"]].options?.toString().includes("/")) {
-          meta = { ...meta, pattern: refs[v["ruleFnId"]].options.toString() };
-        }
-      }
-
+      let meta = this.getMetaFromValidations(p["validations"], refs)
       // console.dir(p, { depth: null });
       // console.dir(validations, { depth: null });
       // console.log(min, max, choices, regex);
 
-      obj[p["fieldName"]] =
-        p["type"] === "object"
-          ? { type: "object", properties: this.parseSchema(p, refs) }
-          : p["type"] === "array"
-            ? {
+      const type = p["type"]
+      const field = p["fieldName"]
+
+      if (type === "object") {
+        console.log(field, p)
+        obj[field] = { type: "object", properties: this.parseSchema(p, refs) }
+      } else {
+        // if array
+        if (type === "array") {
+          if (p["each"]["type"] === "object") {
+            obj[field] = {
               type: "array",
-              items:
-                p["each"]["type"] === "object"
-                  ? {
-                    type: "object",
-                    properties: this.parseSchema(p["each"], refs),
-                  }
-                  : {
-                    type: "number",
-                    example: meta.example ?? meta.minimum ?? this.exampleGenerator.exampleByType("number"),
-                    ...meta,
-                  },
+              items: {
+                type: "object",
+                properties: this.parseSchema(p["each"], refs),
+              }
             }
-            : {
-              type: "number",
-              example: meta.example ?? meta.minimum ?? this.exampleGenerator.exampleByType("number"),
-              ...meta,
-            };
+          } else {
+            const meta = this.getMetaFromValidations(p["each"]["validations"], refs)
+            obj[field] = {
+              type: "array",
+              items:{
+                type: "number",
+                ...meta,
+                example: meta.example ?? meta.minimum ?? this.exampleGenerator.exampleByType("number"),
+              },
+            }
+          }
+        } else {
+          obj[field] = {
+            type: "number",
+            example: meta.example ?? meta.minimum ?? this.exampleGenerator.exampleByType("number"),
+            ...meta,
+          }
+        }
+        
+      }
       if (!p["isOptional"]) obj[p["fieldName"]]["required"] = true;
     }
     return obj;
+  }
+
+  getMetaFromValidations(validations, refs) {
+    let meta: {
+      minimum?: number;
+      maximum?: number;
+      choices?: any;
+      pattern?: string;
+      example?: any;
+    } = {};
+    for (const v of validations) {
+      if (refs[v["ruleFnId"]].options?.example) {
+        meta = { ...meta, example: refs[v["ruleFnId"]].options.example };
+      }
+      if (refs[v["ruleFnId"]].options?.min) {
+        meta = { ...meta, minimum: refs[v["ruleFnId"]].options.min };
+      }
+      if (refs[v["ruleFnId"]].options?.max) {
+        meta = { ...meta, maximum: refs[v["ruleFnId"]].options.max };
+      }
+      if (refs[v["ruleFnId"]].options?.choices) {
+        meta = { ...meta, choices: refs[v["ruleFnId"]].options.choices };
+      }
+      if (refs[v["ruleFnId"]].options?.toString().includes("/")) {
+        meta = { ...meta, pattern: refs[v["ruleFnId"]].options.toString() };
+      }
+    }
+    return meta
   }
 }
 
