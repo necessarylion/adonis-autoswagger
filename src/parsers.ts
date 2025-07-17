@@ -131,7 +131,7 @@ export class CommentParser {
     }
 
     if (line.startsWith("@paramPath")) {
-      required = false;
+      required = true;
     }
     if (line.startsWith("@paramQuery")) {
       required = false;
@@ -773,7 +773,7 @@ export class ValidatorParser {
     // console.dir(json, { depth: null });
     const obj = {
       type: "object",
-      properties: this.parseSchema(
+      ...this.parseSchema(
         validator.toJSON()["schema"]["schema"],
         validator.toJSON()["refs"]
       ),
@@ -881,6 +881,7 @@ export class ValidatorParser {
 
   parseSchema(json, refs) {
     const obj = {};
+    const required = [];
     for (const p of json["properties"]) {
       let meta = this.getMetaFromValidations(p["validations"], refs)
       // console.dir(p, { depth: null });
@@ -892,7 +893,7 @@ export class ValidatorParser {
 
       if (type === "object") {
         console.log(field, p)
-        obj[field] = { type: "object", properties: this.parseSchema(p, refs) }
+        obj[field] = { type: "object", ...this.parseSchema(p, refs) }
       } else {
         // if array
         if (type === "array") {
@@ -901,7 +902,7 @@ export class ValidatorParser {
               type: "array",
               items: {
                 type: "object",
-                properties: this.parseSchema(p["each"], refs),
+                ...this.parseSchema(p["each"], refs),
               }
             }
           } else {
@@ -909,7 +910,7 @@ export class ValidatorParser {
             obj[field] = {
               type: "array",
               items:{
-                type: "number",
+                type: this.getType(p["each"]["type"]),
                 ...meta,
                 example: meta.example ?? meta.minimum ?? this.exampleGenerator.exampleByType("number"),
               },
@@ -917,23 +918,32 @@ export class ValidatorParser {
           }
         } else {
           obj[field] = {
-            type: "number",
+            type: this.getType(type),
             example: meta.example ?? meta.minimum ?? this.exampleGenerator.exampleByType("number"),
             ...meta,
           }
         }
         
       }
-      if (!p["isOptional"]) obj[p["fieldName"]]["required"] = true;
+      if (!p["isOptional"]) required.push(p["fieldName"]);
     }
-    return obj;
+    const res = { properties: obj };
+    if (required.length > 0) res["required"] = required;
+    return res;
+  }
+
+  getType(type: string) {
+    if (type == 'literal') {
+      return 'string'
+    }
+    return type;
   }
 
   getMetaFromValidations(validations, refs) {
     let meta: {
       minimum?: number;
       maximum?: number;
-      choices?: any;
+      enum?: any;
       pattern?: string;
       example?: any;
     } = {};
@@ -948,7 +958,7 @@ export class ValidatorParser {
         meta = { ...meta, maximum: refs[v["ruleFnId"]].options.max };
       }
       if (refs[v["ruleFnId"]].options?.choices) {
-        meta = { ...meta, choices: refs[v["ruleFnId"]].options.choices };
+        meta = { ...meta, enum: refs[v["ruleFnId"]].options.choices };
       }
       if (refs[v["ruleFnId"]].options?.toString().includes("/")) {
         meta = { ...meta, pattern: refs[v["ruleFnId"]].options.toString() };

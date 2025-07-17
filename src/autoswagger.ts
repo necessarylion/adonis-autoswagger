@@ -272,22 +272,23 @@ export class AutoSwagger {
             description: "The resource has been created",
           },
         },
-        securitySchemes: {
-          BearerAuth: {
-            type: "http",
-            scheme: "bearer",
+        securitySchemes: this.options.securitySchemes 
+          ? this.options.securitySchemes 
+          : {
+            BearerAuth: {
+              type: "http",
+              scheme: "bearer",
+            },
+            BasicAuth: {
+              type: "http",
+              scheme: "basic",
+            },
+            ApiKeyAuth: {
+              type: "apiKey",
+              in: "header",
+              name: "X-API-Key",
+            },
           },
-          BasicAuth: {
-            type: "http",
-            scheme: "basic",
-          },
-          ApiKeyAuth: {
-            type: "apiKey",
-            in: "header",
-            name: "X-API-Key",
-          },
-          ...this.options.securitySchemes,
-        },
         schemas: this.schemas,
       },
       paths: {},
@@ -753,10 +754,12 @@ export class AutoSwagger {
       }
       let schema = {
         type: "object",
-        required: parsed.required,
         properties: parsed.props,
         description: name + " (Model)",
       };
+      if (parsed.required.length > 0) {
+        schema['required'] = parsed.required;
+      }
       models[name] = schema;
     }
     return models;
