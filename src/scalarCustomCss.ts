@@ -127,4 +127,17 @@ export const scalarCustomCss = `
   --theme-color-accent: var(--theme-color-1) !important;
   text-decoration: underline !important;
   cursor: pointer;
-}`
+}
+.sidebar-heading-link[tabindex="-1"] .sidebar-heading-link-title {
+  font-weight: bold !important;
+  font-family: monospace;
+  text-transform: uppercase;
+}
+.scalar .scalar-app-layout {
+  max-width: 95% !important;
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px !important;
+}
+.scalar-container {
+  background: #434343d4 !important; 
+}
+`

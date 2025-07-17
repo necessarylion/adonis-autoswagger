@@ -2,6 +2,7 @@ import YAML from "json-to-pretty-yaml";
 import fs from "fs";
 import path from "path";
 import util from "util";
+import { startCase } from "lodash";
 import HTTPStatusCode from "http-status-code";
 import _ from "lodash";
 import { isEmpty, isUndefined } from "lodash";
@@ -360,11 +361,10 @@ export class AutoSwagger {
         if (tag === "") return;
         globalTags.push({
           name: tag,
-          description: "Everything related to " + tag,
         });
       });
 
-      const { sourceFile, action, customAnnotations, operationId } =
+      let { sourceFile, action, customAnnotations, operationId } =
         await this.getDataBasedOnAdonisVersion(route);
 
       route.methods.forEach((method) => {
@@ -413,8 +413,7 @@ export class AutoSwagger {
 
         if (tag != "") {
           globalTags.push({
-            name: tag.toUpperCase(),
-            description: "Everything related to " + tag.toUpperCase(),
+            name: tag.toUpperCase()
           });
           tags = [tag.toUpperCase()];
         }
@@ -476,9 +475,11 @@ export class AutoSwagger {
           }
         }
 
+        action = startCase(action);
+
         const sf = sourceFile.split("/").at(-1).replace(".ts", "");
         let m = {
-          summary: `${summary}${action !== "" ? ` (${action})` : "route"}`,
+          summary: `${summary}${action !== "" ? ` ${action}` : "route"}`,
           description:
             description + "\n\n _" + sourceFile + "_ - **" + action + "**",
           operationId: operationId,
@@ -760,6 +761,7 @@ export class AutoSwagger {
       if (parsed.required.length > 0) {
         schema['required'] = parsed.required;
       }
+      if (name.toLowerCase().includes('readme.md')) continue;
       models[name] = schema;
     }
     return models;
