@@ -13,10 +13,12 @@ Adonis AutoSwagger <br />
 ## 💻️ Install
 
 ```bash
-pnpm i adonis-autoswagger #using pnpm
+pnpm i @necessarylion/adonis-autoswagger #using pnpm
 ```
 
 ---
+
+*This is a fork of [adonis-autoswagger](https://github.com/ad-on-is/adonis-autoswagger) with some additional features.*
 
 ## ⭐️ Features
 
@@ -76,7 +78,7 @@ In your `routes.ts`
 ## 6️⃣ for AdonisJS v6
 
 ```js
-import AutoSwagger from "adonis-autoswagger";
+import AutoSwagger from "@necessarylion/adonis-autoswagger";
 import swagger from "#config/swagger";
 // returns swagger in YAML
 router.get("/swagger", async () => {
@@ -94,7 +96,7 @@ router.get("/docs", async () => {
 ## 5️⃣ for AdonisJS v5
 
 ```js
-import AutoSwagger from "adonis-autoswagger";
+import AutoSwagger from "@necessarylion/adonis-autoswagger";
 import swagger from "Config/swagger";
 // returns swagger in YAML
 Route.get("/swagger", async () => {
@@ -456,6 +458,71 @@ Generates responses and requestBody based on your simple Controller-Annotation (
 
 ## Schemas
 
+### Validators
+
+Automatically generates swagger schema-descriptions based on your validators.
+
+#### Adding example values
+
+```ts
+export const adminLogin = vine.compile(
+  vine.object({
+    email: vine.string().trim().example('admin@laconcept.de'),
+    password: vine.string().trim().example('password'),
+  })
+)
+```
+
+##### Create custom validators with vine
+
+```ts
+// start/validators/example.ts
+
+import vine, { VineNumber, VineString, VineNativeEnum } from '@vinejs/vine'
+import { EnumLike } from '@vinejs/vine/types'
+
+type Options = {
+  example: any
+}
+
+declare module '@vinejs/vine' {
+  interface VineString {
+    example(example: string): this
+  }
+  interface VineNumber {
+    example(example: number): this
+  }
+  interface VineNativeEnum<Values extends EnumLike> {
+    example(example: string): this
+  }
+}
+
+export const exampleRule = vine.createRule((_: unknown, opt: Options) => {
+  return opt.example
+})
+
+VineString.macro('example', function (this: VineString, example: string) {
+  return this.use(exampleRule({ example }))
+})
+VineNumber.macro('example', function (this: VineNumber, example: number) {
+  return this.use(exampleRule({ example }))
+})
+VineNativeEnum.macro('example', function (this: VineNativeEnum<any>, example: string) {
+  return this.use(exampleRule({ example }))
+})
+```
+
+##### Import in `adonisrc.ts` preloads
+
+```ts
+preloads: [
+  () => import('#start/routes'),
+  () => import('#start/kernel'),
+  () => import('#start/sentry'),
+  () => import('#start/validators/example.ts'),
+],
+```
+
 ### Models
 
 Automatically generates swagger schema-descriptions based on your models
@@ -464,7 +531,16 @@ Automatically generates swagger schema-descriptions based on your models
 
 ### Interfaces
 
-Instead of using `param: any` you can now use custom interfaces `param: UserDetails`. The interfaces files need to be located at `app/Interfaces/`
+Instead of using `param: any` you can now use custom interfaces `param: UserDetails`. The interfaces files need to be located at `app/Interfaces/` or `app/interfaces/`
+
+```ts
+export interface UserDetails {
+  // @example(John Doe)
+  name: string;
+  // @example(johndoe@example.com)
+  email: string;
+}
+```
 
 ### Enums
 
