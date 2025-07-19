@@ -1,5 +1,5 @@
-import { scalarCustomCss } from "./scalarCustomCss.js";
-import type { options } from "./types.js";
+import { scalarCustomCss } from "./scalarCustomCss";
+import type { options } from "./types";
 
 /**
  * Swagger UI

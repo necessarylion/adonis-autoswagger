@@ -1,5 +1,5 @@
 import { snakeCase } from "lodash";
-import { getBetweenBrackets } from "./parsers/helpers.js";
+import { getBetweenBrackets } from "./parsers/helpers";
 export default class ExampleGenerator {
   public schemas = {};
   constructor(schemas: any) {

@@ -1,4 +1,4 @@
-import type { options } from "../types.js";
+import type { options } from "../types";
 
 export class RouteParser {
   options: options;

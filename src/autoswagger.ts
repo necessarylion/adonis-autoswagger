@@ -1,4 +1,4 @@
-import { serializeV6Middleware, serializeV6Handler } from "./adonishelpers.js";
+import { serializeV6Middleware, serializeV6Handler } from "./adonishelpers";
 import {
   InterfaceParser,
   ModelParser,
@@ -6,13 +6,13 @@ import {
   RouteParser,
   ValidatorParser,
   EnumParser,
-} from "./parsers/index.js";
+} from "./parsers/index";
 import _, { isEmpty, isUndefined } from "lodash";
 
-import type { options, AdonisRoutes, v6Handler, AdonisRoute } from "./types.js";
+import type { options, AdonisRoutes, v6Handler, AdonisRoute } from "./types";
 
-import { mergeParams, formatOperationId } from "./helpers.js";
-import ExampleGenerator, { ExampleInterfaces } from "./example.js";
+import { mergeParams, formatOperationId } from "./helpers";
+import ExampleGenerator, { ExampleInterfaces } from "./example";
 import {
   getFiles,
   json,
@@ -20,7 +20,7 @@ import {
   jsonToYaml,
   readFile,
   writeFile,
-} from "./file.js";
+} from "./file";
 import {
   getEnums,
   getInterfaces,
@@ -28,8 +28,8 @@ import {
   getSchemas,
   getSerializers,
   getValidators,
-} from "./schema.js";
-import { rapidoc, scalar, stoplight, ui } from "./ui.js";
+} from "./schema";
+import { rapidoc, scalar, stoplight, ui } from "./ui";
 import path from "path";
 import fs from "fs";
 import { startCase } from "lodash";

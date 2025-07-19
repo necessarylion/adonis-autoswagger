@@ -1,11 +1,11 @@
 import HTTPStatusCode from "http-status-code";
-import { isJSONString, getBetweenBrackets } from "./helpers.js";
+import { isJSONString, getBetweenBrackets } from "./helpers";
 import util from "util";
 import extract from "extract-comments";
 import fs from "fs";
 import _ from "lodash";
-import ExampleGenerator from "../example.js";
-import type { options } from "../types.js";
+import ExampleGenerator from "../example";
+import type { options } from "../types";
 
 export class CommentParser {
   private parsedFiles: { [file: string]: string } = {};

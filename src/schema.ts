@@ -7,9 +7,9 @@ import {
   ModelParser,
   ValidatorParser,
   EnumParser,
-} from "./parsers/index.js";
-import { ExampleInterfaces } from "./example.js";
-import { getFiles } from "./file.js";
+} from "./parsers/index";
+import { ExampleInterfaces } from "./example";
+import { getFiles } from "./file";
 
 /**
  * Get all schemas
@@ -70,7 +70,7 @@ export async function getValidators(): Promise<Record<string, any>> {
       for (const [key, value] of Object.entries(val)) {
         if (value.constructor.name.includes("VineValidator")) {
           validators[key] = await this.validatorParser.validatorToObject(
-            value as any
+            value
           );
           validators[key].description = key + " (Validator)";
         }

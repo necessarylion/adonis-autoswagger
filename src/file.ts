@@ -1,6 +1,6 @@
 import YAML from "json-to-pretty-yaml";
 import fs from "fs";
-import type { options } from "./types.js";
+import type { options } from "./types";
 /**
  * Convert json to yaml
  * @param json any
@@ -10,7 +10,7 @@ export function jsonToYaml(json: any) {
   return YAML.stringify(json);
 }
 
-import { AdonisRoutes } from "./types.js";
+import { AdonisRoutes } from "./types";
 
 /**
  * Generate json output

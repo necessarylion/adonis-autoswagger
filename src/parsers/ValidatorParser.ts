@@ -1,4 +1,4 @@
-import ExampleGenerator from "../example.js";
+import ExampleGenerator from "../example";
 import _ from "lodash";
 
 export class ValidatorParser {
@@ -25,7 +25,7 @@ export class ValidatorParser {
     testObj: Record<string, any>,
     validator: any
   ): Promise<Record<string, any>> {
-    const { SimpleMessagesProvider } = await import("@vinejs/vine");
+    const { SimpleMessagesProvider } = require("@vinejs/vine");
     const [e] = await validator.tryValidate(testObj, {
       messagesProvider: new SimpleMessagesProvider({
         required: "REQUIRED",
