@@ -1,13 +1,4 @@
 import YAML from "json-to-pretty-yaml";
-import fs from "fs";
-import path from "path";
-import util from "util";
-import { startCase } from "lodash";
-import HTTPStatusCode from "http-status-code";
-import _ from "lodash";
-import { isEmpty, isUndefined } from "lodash";
-import { existsSync } from "fs";
-import { scalarCustomCss } from "./scalarCustomCss";
 import { serializeV6Middleware, serializeV6Handler } from "./adonishelpers";
 import {
   InterfaceParser,
@@ -17,6 +8,7 @@ import {
   ValidatorParser,
   EnumParser,
 } from "./parsers";
+import _, { isEmpty, isUndefined } from "lodash";
 
 import type { options, AdonisRoutes, v6Handler, AdonisRoute } from "./types";
 
@@ -24,183 +16,60 @@ import { mergeParams, formatOperationId } from "./helpers";
 import ExampleGenerator, { ExampleInterfaces } from "./example";
 // @ts-expect-error moduleResolution:nodenext issue 54523
 import { VineValidator } from "@vinejs/vine";
+import {
+  getFiles,
+  json,
+  docs,
+  jsonToYaml,
+  readFile,
+  writeFile,
+} from "./file";
+import {
+  getEnums,
+  getInterfaces,
+  getModels,
+  getSchemas,
+  getSerializers,
+  getValidators,
+} from "./schema";
+import { rapidoc, scalar, stoplight, ui } from "./ui";
+import path from "path";
+import fs from "fs";
+import { startCase } from "lodash";
+import HTTPStatusCode from "http-status-code";
 
 export class AutoSwagger {
   private options: options;
-  private schemas = {};
+  private schemas: Record<string, any> = {};
   private commentParser: CommentParser;
   private modelParser: ModelParser;
   private interfaceParser: InterfaceParser;
   private enumParser: EnumParser;
   private routeParser: RouteParser;
   private validatorParser: ValidatorParser;
-  private customPaths = {};
+  private customPaths: Record<string, any> = {};
 
-  ui(url: string, options?: options) {
-    const persistAuthString = options?.persistAuthorization
-      ? "persistAuthorization: true,"
-      : "";
-    return `<!DOCTYPE html>
-		<html lang="en">
-		<head>
-				<meta charset="UTF-8">
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<meta http-equiv="X-UA-Compatible" content="ie=edge">
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.3/swagger-ui-standalone-preset.js"></script>
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.3/swagger-ui-bundle.js"></script>
-				<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.3/swagger-ui.css" />
-				<title>Documentation</title>
-		</head>
-		<body>
-				<div id="swagger-ui"></div>
-				<script>
-						window.onload = function() {
-							SwaggerUIBundle({
-								url: "${url}",
-								dom_id: '#swagger-ui',
-								presets: [
-									SwaggerUIBundle.presets.apis,
-									SwaggerUIStandalonePreset
-								],
-								layout: "BaseLayout",
-                ${persistAuthString}
-							})
-						}
-				</script>
-		</body>
-		</html>`;
-  }
+  // UI
+  ui = ui;
+  rapidoc = rapidoc;
+  scalar = scalar;
+  stoplight = stoplight;
 
-  rapidoc(url: string, style = "view") {
-    return (
-      `
-    <!doctype html> <!-- Important: must specify -->
-    <html>
-      <head>
-        <meta charset="utf-8"> <!-- Important: rapi-doc uses utf8 characters -->
-        <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
-        <title>Documentation</title>
-      </head>
-      <body>
-        <rapi-doc
-          spec-url = "` +
-      url +
-      `"
-      theme = "dark"
-      bg-color = "#24283b"
-      schema-style="tree"
-      schema-expand-level = "10"
-      header-color = "#1a1b26"
-      allow-try = "true"
-      nav-hover-bg-color = "#1a1b26"
-      nav-bg-color = "#24283b"
-      text-color = "#c0caf5"
-      nav-text-color = "#c0caf5"
-      primary-color = "#9aa5ce"
-      heading-text = "Documentation"
-      sort-tags = "true"
-      render-style = "` +
-      style +
-      `"
-      default-schema-tab = "example"
-      show-components = "true"
-      allow-spec-url-load = "false"
-      allow-spec-file-load = "false"
-      sort-endpoints-by = "path"
+  // File
+  jsonToYaml = jsonToYaml;
+  json = json;
+  writeFile = writeFile;
+  readFile = readFile;
+  docs = docs;
+  getFiles = getFiles;
 
-        > </rapi-doc>
-      </body>
-    </html>
-    `
-    );
-  }
-
-  scalar(url: string, proxyUrl: string = "https://proxy.scalar.com") {
-    return `
-      <!doctype html>
-      <html>
-        <head>
-          <title>API Reference</title>
-          <meta charset="utf-8" />
-          <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1" />
-          <style>
-          ${scalarCustomCss}
-          </style>
-        </head>
-        <body>
-          <script
-            id="api-reference"
-            data-url="${url}"
-            data-proxy-url="${proxyUrl}"></script>
-          <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
-        </body>
-      </html>
-    `;
-  }
-
-  stoplight(url: string, theme: "light" | "dark" = "dark") {
-    return `
-      <!doctype html>
-      <html data-theme="${theme}">
-        <head>
-          <title>API Documentation - Stoplight</title>
-          <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-		  <script src="https://unpkg.com/@stoplight/elements/web-components.min.js"></script>
-          <link rel="stylesheet" href="https://unpkg.com/@stoplight/elements/styles.min.css">
-        </head>
-        <body style="min-height:100vh">
-	      <elements-api
-		    style="display:block;height:100vh;width:100%;"
-		    apiDescriptionUrl=${url}
-		    router="hash"
-		    layout="sidebar"
-		  />
-        </body>
-      </html>
-    `;
-  }
-
-  jsonToYaml(json: any) {
-    return YAML.stringify(json);
-  }
-
-  async json(routes: any, options: options) {
-    if (process.env.NODE_ENV === (options.productionEnv || "production")) {
-      const str = await this.readFile(options.path, "json");
-      return JSON.parse(str);
-    }
-    return await this.generate(routes, options);
-  }
-
-  async writeFile(routes: any, options: options) {
-    const json = await this.generate(routes, options);
-    const contents = this.jsonToYaml(json);
-    const filePath = options.path + "swagger.yml";
-    const filePathJson = options.path + "swagger.json";
-
-    fs.writeFileSync(filePath, contents);
-    fs.writeFileSync(filePathJson, JSON.stringify(json, null, 2));
-  }
-
-  private async readFile(rootPath, type = "yml") {
-    const filePath = rootPath + "swagger." + type;
-    const data = fs.readFileSync(filePath, "utf-8");
-    if (!data) {
-      console.error("Error reading file");
-      return;
-    }
-    return data;
-  }
-
-  async docs(routes: any, options: options) {
-    if (process.env.NODE_ENV === (options.productionEnv || "production")) {
-      return this.readFile(options.path);
-    }
-    return this.jsonToYaml(await this.generate(routes, options));
-  }
+  // Schema
+  getSchemas = getSchemas;
+  getValidators = getValidators;
+  getSerializers = getSerializers;
+  getModels = getModels;
+  getInterfaces = getInterfaces;
+  getEnums = getEnums;
 
   private async generate(adonisRoutes: AdonisRoutes, options: options) {
     this.options = {
@@ -245,7 +114,7 @@ export class AutoSwagger {
     }
     this.commentParser.exampleGenerator = new ExampleGenerator(this.schemas);
 
-    const docs = {
+    const docs: Record<string, any> = {
       openapi: "3.0.0",
       info: options.info || {
         title: options.title,
@@ -273,37 +142,37 @@ export class AutoSwagger {
             description: "The resource has been created",
           },
         },
-        securitySchemes: this.options.securitySchemes 
-          ? this.options.securitySchemes 
+        securitySchemes: this.options.securitySchemes
+          ? this.options.securitySchemes
           : {
-            BearerAuth: {
-              type: "http",
-              scheme: "bearer",
+              BearerAuth: {
+                type: "http",
+                scheme: "bearer",
+              },
+              BasicAuth: {
+                type: "http",
+                scheme: "basic",
+              },
+              ApiKeyAuth: {
+                type: "apiKey",
+                in: "header",
+                name: "X-API-Key",
+              },
             },
-            BasicAuth: {
-              type: "http",
-              scheme: "basic",
-            },
-            ApiKeyAuth: {
-              type: "apiKey",
-              in: "header",
-              name: "X-API-Key",
-            },
-          },
         schemas: this.schemas,
       },
       paths: {},
       tags: [],
     };
-    let paths = {};
+    let paths: Record<string, any> = {};
 
     let sscheme = "BearerAuth";
     if (this.options.defaultSecurityScheme) {
       sscheme = this.options.defaultSecurityScheme;
     }
 
-    let securities = {
-      "auth": { [sscheme]: ["access"] },
+    let securities: Record<string, any> = {
+      auth: { [sscheme]: ["access"] },
       "auth:api": { [sscheme]: ["access"] },
       ...this.options.authMiddlewares
         ?.map((am) => ({
@@ -312,7 +181,7 @@ export class AutoSwagger {
         .reduce((acc, val) => ({ ...acc, ...val }), {}),
     };
 
-    let globalTags = [];
+    let globalTags: any[] = [];
 
     if (this.options.debug) {
       console.log("Route annotations:");
@@ -321,7 +190,7 @@ export class AutoSwagger {
     }
 
     for await (const route of routes) {
-      let ignore = false;
+      let ignore: boolean = false;
       for (const i of options.ignore) {
         if (
           route.pattern == i ||
@@ -334,8 +203,8 @@ export class AutoSwagger {
       }
       if (ignore) continue;
 
-      let security = [];
-      const responseCodes = {
+      let security: any[] = [];
+      const responseCodes: Record<string, any> = {
         GET: "200",
         POST: "201",
         DELETE: "202",
@@ -367,8 +236,8 @@ export class AutoSwagger {
       let { sourceFile, action, customAnnotations, operationId } =
         await this.getDataBasedOnAdonisVersion(route);
 
-      route.methods.forEach((method) => {
-        let responses = {};
+      route.methods.forEach((method: string) => {
+        let responses: Record<string, any> = {};
         if (method === "HEAD") return;
 
         if (
@@ -378,10 +247,9 @@ export class AutoSwagger {
         )
           return;
 
-        let description = "";
-        let summary = "";
-        let tag = "";
-        let operationId: string;
+        let description: string = "";
+        let summary: string = "";
+        let tag: string = "";
 
         if (security.length > 0) {
           responses["401"] = {
@@ -392,13 +260,13 @@ export class AutoSwagger {
           };
         }
 
-        let requestBody = {
+        let requestBody: Record<string, any> = {
           content: {
             "application/json": {},
           },
         };
 
-        let actionParams = {};
+        let actionParams: Record<string, any> = {};
 
         if (action !== "" && typeof customAnnotations[action] !== "undefined") {
           description = customAnnotations[action].description;
@@ -477,8 +345,8 @@ export class AutoSwagger {
 
         action = startCase(action);
 
-        const sf = sourceFile.split("/").at(-1).replace(".ts", "");
-        let m = {
+        const sf: string = sourceFile.split("/").at(-1).replace(".ts", "");
+        let m: Record<string, any> = {
           summary: `${summary}${action !== "" ? ` ${action}` : "route"}`,
           description:
             description + "\n\n _" + sourceFile + "_ - **" + action + "**",
@@ -508,7 +376,10 @@ export class AutoSwagger {
     // filter unused tags
     const usedTags = _.uniq(
       Object.entries(paths)
-        .map(([p, val]) => Object.entries(val)[0][1].tags)
+        .map(
+          ([p, val]: [string, Record<string, any>]) =>
+            Object.entries(val)[0][1].tags
+        )
         .flat()
     );
 
@@ -518,10 +389,10 @@ export class AutoSwagger {
   }
 
   private async getDataBasedOnAdonisVersion(route: AdonisRoute) {
-    let sourceFile = "";
-    let action = "";
-    let customAnnotations;
-    let operationId = "";
+    let sourceFile: string = "";
+    let action: string = "";
+    let customAnnotations: Record<string, any>;
+    let operationId: string = "";
     if (
       route.meta.resolvedHandler !== null &&
       route.meta.resolvedHandler !== undefined
@@ -540,7 +411,7 @@ export class AutoSwagger {
       }
     }
 
-    let v6handler = <v6Handler>route.handler;
+    let v6handler: v6Handler = <v6Handler>route.handler;
     if (
       v6handler.reference !== null &&
       v6handler.reference !== undefined &&
@@ -549,8 +420,8 @@ export class AutoSwagger {
       if (!Array.isArray(v6handler.reference)) {
         // handles magic strings
         // router.resource('/test', '#controllers/test_controller')
-        [sourceFile, action] = v6handler.reference.split(".");
-        const split = sourceFile.split("/");
+        [sourceFile, action] = (v6handler.reference as string).split(".");
+        const split: string[] = sourceFile.split("/");
 
         if (split[0].includes("#")) {
           sourceFile = sourceFile.replaceAll(
@@ -568,7 +439,7 @@ export class AutoSwagger {
         action = v6handler.method;
         sourceFile = v6handler.moduleNameOrPath;
         operationId = formatOperationId(sourceFile + "." + action);
-        const split = sourceFile.split("/");
+        const split: string[] = sourceFile.split("/");
         if (split[0].includes("#")) {
           sourceFile = sourceFile.replaceAll(
             split[0],
@@ -611,263 +482,4 @@ export class AutoSwagger {
     return { sourceFile, action, customAnnotations, operationId };
   }
 
-  private async getSchemas() {
-    let schemas = {
-      Any: {
-        description: "Any JSON object not defined as schema",
-      },
-    };
-
-    schemas = {
-      ...schemas,
-      ...(await this.getInterfaces()),
-      ...(await this.getSerializers()),
-      ...(await this.getModels()),
-      ...(await this.getValidators()),
-      ...(await this.getEnums()),
-    };
-
-    return schemas;
-  }
-
-  private async getValidators() {
-    const validators = {};
-    let p6 = path.join(this.options.appPath, "validators");
-
-    if (typeof this.customPaths["#validators"] !== "undefined") {
-      // it's v6
-      p6 = p6.replaceAll("app/validators", this.customPaths["#validators"]);
-      p6 = p6.replaceAll("app\\validators", this.customPaths["#validators"]);
-    }
-
-    if (!existsSync(p6)) {
-      if (this.options.debug) {
-        console.log("Validators paths don't exist", p6);
-      }
-      return validators;
-    }
-
-    const files = await this.getFiles(p6, []);
-    if (this.options.debug) {
-      console.log("Found validator files", files);
-    }
-
-    try {
-      for (let file of files) {
-        if (/^[a-zA-Z]:/.test(file)) {
-          file = "file:///" + file;
-        }
-
-        const val = await import(file);
-        for (const [key, value] of Object.entries(val)) {
-          if (value.constructor.name.includes("VineValidator")) {
-            validators[key] = await this.validatorParser.validatorToObject(
-              value as VineValidator<any, any>
-            );
-            validators[key].description = key + " (Validator)";
-          }
-        }
-      }
-    } catch (e) {
-      console.log(
-        "**You are probably using 'node ace serve --hmr', which is not supported yet. Use 'node ace serve --watch' instead.**"
-      );
-      console.error(e.message);
-    }
-
-    return validators;
-  }
-
-  private async getSerializers() {
-    const serializers = {};
-    let p6 = path.join(this.options.appPath, "serializers");
-
-    if (typeof this.customPaths["#serializers"] !== "undefined") {
-      // it's v6
-      p6 = p6.replaceAll("app/serializers", this.customPaths["#serializers"]);
-      p6 = p6.replaceAll("app\\serializers", this.customPaths["#serializers"]);
-    }
-
-    if (!existsSync(p6)) {
-      if (this.options.debug) {
-        console.log("Serializers paths don't exist", p6);
-      }
-      return serializers;
-    }
-
-    const files = await this.getFiles(p6, []);
-    if (this.options.debug) {
-      console.log("Found serializer files", files);
-    }
-
-    for (let file of files) {
-      if (/^[a-zA-Z]:/.test(file)) {
-        file = "file:///" + file;
-      }
-
-      const val = await import(file);
-
-      for (const [key, value] of Object.entries(val)) {
-        if (key.indexOf("Serializer") > -1) {
-          serializers[key] = value;
-        }
-      }
-    }
-
-    return serializers;
-  }
-
-  private async getModels() {
-    const models = {};
-    let p = path.join(this.options.appPath, "Models");
-    let p6 = path.join(this.options.appPath, "models");
-
-    if (typeof this.customPaths["#models"] !== "undefined") {
-      // it's v6
-      p6 = p6.replaceAll("app/models", this.customPaths["#models"]);
-      p6 = p6.replaceAll("app\\models", this.customPaths["#models"]);
-    }
-
-    if (!existsSync(p) && !existsSync(p6)) {
-      if (this.options.debug) {
-        console.log("Model paths don't exist", p, p6);
-      }
-      return models;
-    }
-    if (existsSync(p6)) {
-      p = p6;
-    }
-    const files = await this.getFiles(p, []);
-    const readFile = util.promisify(fs.readFile);
-    if (this.options.debug) {
-      console.log("Found model files", files);
-    }
-    for (let file of files) {
-      file = file.replace(".js", "");
-      const data = await readFile(file, "utf8");
-      file = file.replace(".ts", "");
-      const split = file.split("/");
-      let name = split[split.length - 1].replace(".ts", "");
-      file = file.replace("app/", "/app/");
-      const parsed = this.modelParser.parseModelProperties(data);
-      if (parsed.name !== "") {
-        name = parsed.name;
-      }
-      let schema = {
-        type: "object",
-        properties: parsed.props,
-        description: name + " (Model)",
-      };
-      if (parsed.required.length > 0) {
-        schema['required'] = parsed.required;
-      }
-      if (name.toLowerCase().includes('readme.md')) continue;
-      models[name] = schema;
-    }
-    return models;
-  }
-
-  private async getInterfaces() {
-    let interfaces = {
-      ...ExampleInterfaces.paginationInterface(),
-    };
-    let p = path.join(this.options.appPath, "Interfaces");
-    let p6 = path.join(this.options.appPath, "interfaces");
-
-    if (typeof this.customPaths["#interfaces"] !== "undefined") {
-      // it's v6
-      p6 = p6.replaceAll("app/interfaces", this.customPaths["#interfaces"]);
-      p6 = p6.replaceAll("app\\interfaces", this.customPaths["#interfaces"]);
-    }
-
-    if (!existsSync(p) && !existsSync(p6)) {
-      if (this.options.debug) {
-        console.log("Interface paths don't exist", p, p6);
-      }
-      return interfaces;
-    }
-    if (existsSync(p6)) {
-      p = p6;
-    }
-    const files = await this.getFiles(p, []);
-    if (this.options.debug) {
-      console.log("Found interfaces files", files);
-    }
-    const readFile = util.promisify(fs.readFile);
-    for (let file of files) {
-      file = file.replace(".js", "");
-      const data = await readFile(file, "utf8");
-      file = file.replace(".ts", "");
-      interfaces = {
-        ...interfaces,
-        ...this.interfaceParser.parseInterfaces(data),
-      };
-    }
-
-    return interfaces;
-  }
-
-  private async getFiles(dir, files_) {
-    const fs = require("fs");
-    files_ = files_ || [];
-    var files = await fs.readdirSync(dir);
-    for (let i in files) {
-      var name = dir + "/" + files[i];
-      if (fs.statSync(name).isDirectory()) {
-        await this.getFiles(name, files_);
-      } else {
-        files_.push(name);
-      }
-    }
-    return files_;
-  }
-
-  private async getEnums() {
-    let enums = {};
-
-    const enumParser = new EnumParser();
-
-    let p = path.join(this.options.appPath, "Types");
-    let p6 = path.join(this.options.appPath, "types");
-
-    if (typeof this.customPaths["#types"] !== "undefined") {
-      // it's v6
-      p6 = p6.replaceAll("app/types", this.customPaths["#types"]);
-      p6 = p6.replaceAll("app\\types", this.customPaths["#types"]);
-    }
-
-    if (!existsSync(p) && !existsSync(p6)) {
-      if (this.options.debug) {
-        console.log("Enum paths don't exist", p, p6);
-      }
-      return enums;
-    }
-
-    if (existsSync(p6)) {
-      p = p6;
-    }
-
-    const files = await this.getFiles(p, []);
-    if (this.options.debug) {
-      console.log("Found enum files", files);
-    }
-
-    const readFile = util.promisify(fs.readFile);
-    for (let file of files) {
-      file = file.replace(".js", "");
-      const data = await readFile(file, "utf8");
-      file = file.replace(".ts", "");
-      const split = file.split("/");
-      const name = split[split.length - 1].replace(".ts", "");
-      file = file.replace("app/", "/app/");
-
-      const parsedEnums = enumParser.parseEnums(data);
-      enums = {
-        ...enums,
-        ...parsedEnums,
-      };
-    }
-
-    return enums;
-  }
 }

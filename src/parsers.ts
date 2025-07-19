@@ -29,15 +29,23 @@ export class CommentParser {
     this.options = options;
   }
 
-  private parseAnnotations(lines: string[]) {
-    let summary = "";
-    let tag = "";
-    let description = "";
-    let operationId;
-    let responses = {};
-    let requestBody;
-    let parameters = {};
-    let headers = {};
+  private parseAnnotations(lines: string[]): {
+    description: string;
+    responses: Record<string, any>;
+    requestBody: any;
+    parameters: Record<string, any>;
+    summary: string;
+    operationId: any;
+    tag: string;
+  } {
+    let summary: string = "";
+    let tag: string = "";
+    let description: string = "";
+    let operationId: any;
+    let responses: Record<string, any> = {};
+    let requestBody: any;
+    let parameters: Record<string, any> = {};
+    let headers: Record<string, any> = {};
     lines.forEach((line) => {
       if (line.startsWith("@summary")) {
         summary = line.replace("@summary ", "");
@@ -108,12 +116,12 @@ export class CommentParser {
     };
   }
 
-  private parseParam(line: string) {
-    let where = "path";
-    let required = true;
-    let type = "string";
+  private parseParam(line: string): Record<string, any> {
+    let where: string = "path";
+    let required: boolean = true;
+    let type: string = "string";
     let example: any = null;
-    let enums = [];
+    let enums: any[] = [];
 
     if (line.startsWith("@paramUse")) {
       let use = getBetweenBrackets(line, "paramUse");
@@ -185,13 +193,15 @@ export class CommentParser {
     return { [param]: p };
   }
 
-  private parseResponseHeader(responseLine: string) {
-    let description = "";
+  private parseResponseHeader(
+    responseLine: string
+  ): Record<string, any> | null {
+    let description: string = "";
     let example: any = "";
-    let type = "string";
-    let enums = [];
-    const line = responseLine.replace("@responseHeader ", "");
-    let [status, name, desc, meta] = line.split(" - ");
+    let type: string = "string";
+    let enums: any[] = [];
+    const line: string = responseLine.replace("@responseHeader ", "");
+    let [status, name, desc, meta]: string[] = line.split(" - ");
 
     if (typeof status === "undefined" || typeof name === "undefined") {
       return null;
@@ -257,21 +267,23 @@ export class CommentParser {
     };
   }
 
-  private parseResponseBody(responseLine: string) {
-    let responses = {};
-    const line = responseLine.replace("@responseBody ", "");
-    let [status, res, desc] = line.split(" - ");
+  private parseResponseBody(responseLine: string): Record<string, any> {
+    let responses: Record<string, any> = {};
+    const line: string = responseLine.replace("@responseBody ", "");
+    let [status, res, desc]: string[] = line.split(" - ");
     if (typeof status === "undefined") return;
     responses[status] = this.parseBody(res, "responseBody");
     responses[status]["description"] = desc;
     return responses;
   }
 
-  private parseRequestFormDataBody(rawLine: string) {
-    const line = rawLine.replace("@requestFormDataBody ", "");
-    let json = {},
-      required = [];
-    const isJson = isJSONString(line);
+  private parseRequestFormDataBody(
+    rawLine: string
+  ): Record<string, any> | undefined {
+    const line: string = rawLine.replace("@requestFormDataBody ", "");
+    let json: Record<string, any> = {},
+      required: any[] = [];
+    const isJson: boolean = isJSONString(line);
     if (!isJson) {
       // try to get json from reference
       let rawRef = line.substring(line.indexOf("<") + 1, line.lastIndexOf(">"));
@@ -334,10 +346,10 @@ export class CommentParser {
     };
   }
 
-  private parseBody(rawLine: string, type: string) {
-    let line = rawLine.replace(`@${type} `, "");
+  private parseBody(rawLine: string, type: string): Record<string, any> {
+    let line: string = rawLine.replace(`@${type} `, "");
 
-    const isJson = isJSONString(line);
+    const isJson: boolean = isJSONString(line);
 
     if (isJson) {
       // No need to try/catch this JSON.parse as we already did that in the isJSONString function
@@ -359,10 +371,10 @@ export class CommentParser {
     return this.exampleGenerator.parseRef(line);
   }
 
-  arrayItems(json) {
-    const oneOf = [];
+  arrayItems(json: any[]): Record<string, any> {
+    const oneOf: any[] = [];
 
-    const t = typeof json[0];
+    const t: string = typeof json[0];
 
     if (t === "string") {
       json.forEach((j) => {
@@ -382,28 +394,28 @@ export class CommentParser {
     return { type: typeof json[0] };
   }
 
-  jsonToObj(json) {
-    const o = {
+  jsonToObj(json: any): Record<string, any> {
+    const o: Record<string, any> = {
       type: "object",
       properties: Object.keys(json)
         .map((key) => {
-          const t = typeof json[key];
-          const v = json[key];
-          let value = v;
+          const t: string = typeof json[key];
+          const v: any = json[key];
+          let value: any = v;
           if (t === "object") {
             value = this.jsonToObj(json[key]);
           }
           if (t === "string" && v.includes("<") && v.includes(">")) {
             value = this.exampleGenerator.parseRef(v);
             if (v.includes("[]")) {
-              let ref = "";
+              let ref: string = "";
               if (_.has(value, "content.application/json.schema.$ref")) {
                 ref = value["content"]["application/json"]["schema"]["$ref"];
               }
               if (_.has(value, "content.application/json.schema.items.$ref")) {
                 ref =
                   value["content"]["application/json"]["schema"]["items"][
-                  "$ref"
+                    "$" + "ref"
                   ];
               }
               value = {
@@ -429,9 +441,12 @@ export class CommentParser {
     return o;
   }
 
-  async getAnnotations(file: string, action: string) {
-    let annotations = {};
-    let newdata = "";
+  async getAnnotations(
+    file: string,
+    action: string
+  ): Promise<Record<string, any>> {
+    let annotations: Record<string, any> = {};
+    let newdata: string = "";
     if (typeof file === "undefined") return;
 
     if (typeof this.parsedFiles[file] !== "undefined") {
@@ -477,10 +492,14 @@ export class RouteParser {
   /*
     extract path-variables, tags and the uri-pattern
   */
-  extractInfos(p: string) {
-    let parameters = {};
-    let pattern = "";
-    let tags = [];
+  extractInfos(p: string): {
+    tags: string[];
+    parameters: Record<string, any>;
+    pattern: string;
+  } {
+    let parameters: Record<string, any> = {};
+    let pattern: string = "";
+    let tags: any[] = [];
     let required: boolean;
 
     const split = p.split("/");
@@ -521,14 +540,18 @@ export class ModelParser {
     this.exampleGenerator = new ExampleGenerator({});
   }
 
-  parseModelProperties(data) {
-    let props = {};
-    let required = [];
+  parseModelProperties(data: string): {
+    name: string;
+    props: Record<string, any>;
+    required: any[];
+  } {
+    let props: Record<string, any> = {};
+    let required: any[] = [];
     // remove empty lines
     data = data.replace(/\t/g, "").replace(/^(?=\n)$|^\s*|\s*$|\n\n+/gm, "");
-    const lines = data.split("\n");
-    let softDelete = false;
-    let name = "";
+    const lines: string[] = data.split("\n");
+    let softDelete: boolean = false;
+    let name: string = "";
     lines.forEach((line, index) => {
       line = line.trim();
       // skip comments
@@ -774,10 +797,12 @@ export class ValidatorParser {
   constructor() {
     this.exampleGenerator = new ExampleGenerator({});
   }
-  async validatorToObject(validator: VineValidator<any, any>) {
+  async validatorToObject(
+    validator: VineValidator<any, any>
+  ): Promise<Record<string, any>> {
     // console.dir(validator.toJSON()["refs"], { depth: null });
     // console.dir(json, { depth: null });
-    const obj = {
+    const obj: Record<string, any> = {
       type: "object",
       ...this.parseSchema(
         validator.toJSON()["schema"]["schema"],
@@ -785,11 +810,15 @@ export class ValidatorParser {
       ),
     };
     // console.dir(obj, { depth: null });
-    const testObj = this.objToTest(obj["properties"]);
+    const testObj: Record<string, any> = this.objToTest(obj["properties"]);
     return await this.parsePropsAndMeta(obj, testObj, validator);
   }
 
-  async parsePropsAndMeta(obj, testObj, validator: VineValidator<any, any>) {
+  async parsePropsAndMeta(
+    obj: Record<string, any>,
+    testObj: Record<string, any>,
+    validator: VineValidator<any, any>
+  ): Promise<Record<string, any>> {
     // console.log(Object.keys(errors));
     const { SimpleMessagesProvider } = await import("@vinejs/vine");
     const [e] = await validator.tryValidate(testObj, {
@@ -867,8 +896,8 @@ export class ValidatorParser {
     return obj;
   }
 
-  objToTest(obj) {
-    const res = {};
+  objToTest(obj: Record<string, any>): Record<string, any> {
+    const res: Record<string, any> = {};
     Object.keys(obj).forEach((key) => {
       if (obj[key]["type"] === "object") {
         res[key] = this.objToTest(obj[key]["properties"]);
@@ -885,21 +914,21 @@ export class ValidatorParser {
     return res;
   }
 
-  parseSchema(json, refs) {
-    const obj = {};
-    const required = [];
+  parseSchema(json: any, refs: any): Record<string, any> {
+    const obj: Record<string, any> = {};
+    const required: any[] = [];
     for (const p of json["properties"]) {
-      let meta = this.getMetaFromValidations(p["validations"], refs)
+      let meta = this.getMetaFromValidations(p["validations"], refs);
       // console.dir(p, { depth: null });
       // console.dir(validations, { depth: null });
       // console.log(min, max, choices, regex);
 
-      const type = p["type"]
-      const field = p["fieldName"]
+      const type = p["type"];
+      const field = p["fieldName"];
 
       if (type === "object") {
-        console.log(field, p)
-        obj[field] = { type: "object", ...this.parseSchema(p, refs) }
+        console.log(field, p);
+        obj[field] = { type: "object", ...this.parseSchema(p, refs) };
       } else {
         // if array
         if (type === "array") {
@@ -909,31 +938,39 @@ export class ValidatorParser {
               items: {
                 type: "object",
                 ...this.parseSchema(p["each"], refs),
-              }
-            }
+              },
+            };
           } else {
-            const meta = this.getMetaFromValidations(p["each"]["validations"], refs)
+            const meta = this.getMetaFromValidations(
+              p["each"]["validations"],
+              refs
+            );
             obj[field] = {
               type: "array",
-              items:{
+              items: {
                 type: this.getType(p["each"]["type"]),
                 ...meta,
-                example: meta.example ?? meta.minimum ?? this.exampleGenerator.exampleByType("number"),
+                example:
+                  meta.example ??
+                  meta.minimum ??
+                  this.exampleGenerator.exampleByType("number"),
               },
-            }
+            };
           }
         } else {
           obj[field] = {
             type: this.getType(type),
-            example: meta.example ?? meta.minimum ?? this.exampleGenerator.exampleByType("number"),
+            example:
+              meta.example ??
+              meta.minimum ??
+              this.exampleGenerator.exampleByType("number"),
             ...meta,
-          }
+          };
         }
-        
       }
       if (!p["isOptional"]) required.push(p["fieldName"]);
     }
-    const res = { properties: obj };
+    const res: Record<string, any> = { properties: obj };
     if (required.length > 0) res["required"] = required;
     return res;
   }
@@ -945,7 +982,16 @@ export class ValidatorParser {
     return type;
   }
 
-  getMetaFromValidations(validations, refs) {
+  getMetaFromValidations(
+    validations: any[],
+    refs: any
+  ): {
+    minimum?: number;
+    maximum?: number;
+    enum?: any;
+    pattern?: string;
+    example?: any;
+  } {
     let meta: {
       minimum?: number;
       maximum?: number;
@@ -970,7 +1016,7 @@ export class ValidatorParser {
         meta = { ...meta, pattern: refs[v["ruleFnId"]].options.toString() };
       }
     }
-    return meta
+    return meta;
   }
 }
 
@@ -985,8 +1031,8 @@ export class InterfaceParser {
     this.schemas = schemas;
   }
 
-  objToExample(obj) {
-    let example = {};
+  objToExample(obj: Record<string, any>): Record<string, any> {
+    let example: Record<string, any> = {};
     Object.entries(obj).map(([key, value]) => {
       if (typeof value === "object") {
         example[key] = this.objToExample(value);
@@ -1000,8 +1046,8 @@ export class InterfaceParser {
     return example;
   }
 
-  parseProps(obj) {
-    const no = {};
+  parseProps(obj: Record<string, any>): Record<string, any> {
+    const no: Record<string, any> = {};
     Object.entries(obj).map(([f, value]) => {
       if (typeof value === "object") {
         no[f.replaceAll("?", "")] = {
@@ -1062,14 +1108,14 @@ export class InterfaceParser {
     return { properties: {}, required: [] };
   }
 
-  parseInterfaces(data) {
+  parseInterfaces(data: string): Record<string, any> {
     data = data.replace(/\t/g, "").replace(/^(?=\n)$|^\s*|\s*$|\n\n+/gm, "");
 
-    let currentInterface = null;
-    const interfaces = {};
-    const interfaceDefinitions = new Map();
+    let currentInterface: string | null = null;
+    const interfaces: Record<string, any> = {};
+    const interfaceDefinitions: Map<string, any> = new Map();
 
-    const lines = data.split("\n");
+    const lines: string[] = data.split("\n");
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
       const isDefault = line.startsWith("export default interface")
@@ -1238,7 +1284,7 @@ export class EnumParser {
 
   parseEnums(data: string): Record<string, any> {
     const enums: Record<string, any> = {};
-    const lines = data.split("\n");
+    const lines: string[] = data.split("\n");
     let currentEnum: string | null = null;
     let description: string | null = null;
 
