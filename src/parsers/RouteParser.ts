@@ -1,4 +1,4 @@
-import type { options } from "../types";
+import type { options } from "../types.js";
 
 export class RouteParser {
   options: options;
@@ -9,7 +9,7 @@ export class RouteParser {
   /*
     extract path-variables, tags and the uri-pattern
   */
-  extractInfos(p: string): {
+  extractInfos(path: string): {
     tags: string[];
     parameters: Record<string, any>;
     pattern: string;
@@ -19,7 +19,7 @@ export class RouteParser {
     let tags: any[] = [];
     let required: boolean;
 
-    const split = p.split("/");
+    const split = path.split("/");
     if (split.length > this.options.tagIndex) {
       tags = [split[this.options.tagIndex].toUpperCase()];
     }

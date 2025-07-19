@@ -7,12 +7,14 @@ import {
   ModelParser,
   ValidatorParser,
   EnumParser,
-} from "./parsers";
-import ExampleGenerator, { ExampleInterfaces } from "./example";
-// @ts-expect-error moduleResolution:nodenext issue 54523
-import { VineValidator } from "@vinejs/vine";
-import { getFiles } from "./file";
+} from "./parsers/index.js";
+import { ExampleInterfaces } from "./example.js";
+import { getFiles } from "./file.js";
 
+/**
+ * Get all schemas
+ * @returns
+ */
 export async function getSchemas(): Promise<Record<string, any>> {
   let schemas: Record<string, any> = {
     Any: {
@@ -32,6 +34,10 @@ export async function getSchemas(): Promise<Record<string, any>> {
   return schemas;
 }
 
+/**
+ * Get all validators
+ * @returns
+ */
 export async function getValidators(): Promise<Record<string, any>> {
   const validators: Record<string, any> = {};
   let p6: string = path.join(this.options.appPath, "validators");
@@ -64,7 +70,7 @@ export async function getValidators(): Promise<Record<string, any>> {
       for (const [key, value] of Object.entries(val)) {
         if (value.constructor.name.includes("VineValidator")) {
           validators[key] = await this.validatorParser.validatorToObject(
-            value as VineValidator<any, any>
+            value as any
           );
           validators[key].description = key + " (Validator)";
         }
@@ -80,6 +86,10 @@ export async function getValidators(): Promise<Record<string, any>> {
   return validators;
 }
 
+/**
+ * Get all serializers
+ * @returns
+ */
 export async function getSerializers(): Promise<Record<string, any>> {
   const serializers: Record<string, any> = {};
   let p6: string = path.join(this.options.appPath, "serializers");
@@ -119,6 +129,10 @@ export async function getSerializers(): Promise<Record<string, any>> {
   return serializers;
 }
 
+/**
+ * Get all models
+ * @returns
+ */
 export async function getModels(): Promise<Record<string, any>> {
   const models: Record<string, any> = {};
   let p: string = path.join(this.options.appPath, "Models");
@@ -169,6 +183,10 @@ export async function getModels(): Promise<Record<string, any>> {
   return models;
 }
 
+/**
+ * Get all interfaces
+ * @returns
+ */
 export async function getInterfaces(): Promise<Record<string, any>> {
   let interfaces: Record<string, any> = {
     ...ExampleInterfaces.paginationInterface(),
@@ -209,6 +227,10 @@ export async function getInterfaces(): Promise<Record<string, any>> {
   return interfaces;
 }
 
+/**
+ * Get all enums
+ * @returns
+ */
 export async function getEnums(): Promise<Record<string, any>> {
   let enums: Record<string, any> = {};
 

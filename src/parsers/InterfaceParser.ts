@@ -1,4 +1,4 @@
-import ExampleGenerator from "../example";
+import ExampleGenerator from "../example.js";
 
 export class InterfaceParser {
   exampleGenerator: ExampleGenerator;
@@ -27,22 +27,22 @@ export class InterfaceParser {
   }
 
   parseProps(obj: Record<string, any>): Record<string, any> {
-    const no: Record<string, any> = {};
-    Object.entries(obj).map(([f, value]) => {
+    const newObject: Record<string, any> = {};
+    Object.entries(obj).map(([field, value]) => {
       if (typeof value === "object") {
-        no[f.replaceAll("?", "")] = {
+        newObject[field.replaceAll("?", "")] = {
           type: "object",
-          nullable: f.includes("?"),
+          nullable: field.includes("?"),
           properties: this.parseProps(value),
           example: this.objToExample(value),
         };
       } else {
-        no[f.replaceAll("?", "")] = {
-          ...this.parseType(value, f),
+        newObject[field.replaceAll("?", "")] = {
+          ...this.parseType(value, field),
         };
       }
     });
-    return no;
+    return newObject;
   }
 
   getInheritedProperties(baseType: string): any {
@@ -87,14 +87,16 @@ export class InterfaceParser {
     return { properties: {}, required: [] };
   }
 
-  parseInterfaces(data: string): Record<string, any> {
-    data = data.replace(/\t/g, "").replace(/^(?=\n)$|^\s*|\s*$|\n\n+/gm, "");
+  parseInterfaces(fileContent: string): Record<string, any> {
+    fileContent = fileContent
+      .replace(/\t/g, "")
+      .replace(/^(?=\n)$|^\s*|\s*$|\n\n+/gm, "");
 
     let currentInterface: string | null = null;
     const interfaces: Record<string, any> = {};
     const interfaceDefinitions: Map<string, any> = new Map();
 
-    const lines: string[] = data.split("\n");
+    const lines: string[] = fileContent.split("\n");
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
       const isDefault = line.startsWith("export default interface");
@@ -104,9 +106,11 @@ export class InterfaceParser {
         line.startsWith("export interface") ||
         isDefault
       ) {
-        const sp = line.split(/\s+/);
-        const idx = line.endsWith("}") ? sp.length - 1 : sp.length - 2;
-        const name = sp[idx].split(/[{\s]/)[0];
+        const splittedLine = line.split(/\s+/);
+        const index = line.endsWith("}")
+          ? splittedLine.length - 1
+          : splittedLine.length - 2;
+        const name = splittedLine[index].split(/[{\s]/)[0];
         const extendedTypes = this.#parseExtends(line);
         interfaceDefinitions.set(name, {
           extends: extendedTypes,
@@ -131,8 +135,8 @@ export class InterfaceParser {
         !line.startsWith("/*") &&
         !line.startsWith("*")
       ) {
-        const def = interfaceDefinitions.get(currentInterface);
-        if (def) {
+        const definition = interfaceDefinitions.get(currentInterface);
+        if (definition) {
           const previousLine = i > 0 ? lines[i - 1].trim() : "";
           const isRequired = previousLine.includes("@required");
 
@@ -142,23 +146,23 @@ export class InterfaceParser {
           const [prop, type] = line.split(":").map((s) => s.trim());
           if (prop && type) {
             const cleanProp = prop.replace("?", "");
-            def.properties[cleanProp] = type.replace(";", "");
+            definition.properties[cleanProp] = type.replace(";", "");
 
             if (isRequired || !prop.includes("?")) {
-              def.required.push(cleanProp);
+              definition.required.push(cleanProp);
             }
 
-            if (example) def.examples[cleanProp] = example;
+            if (example) definition.examples[cleanProp] = example;
           }
         }
       }
     }
 
-    for (const [name, def] of interfaceDefinitions) {
+    for (const [name, definition] of interfaceDefinitions) {
       let allProperties = {};
-      let requiredFields = new Set(def.required);
+      let requiredFields = new Set(definition.required);
 
-      for (const baseType of def.extends) {
+      for (const baseType of definition.extends) {
         const baseSchema = this.schemas[baseType];
         if (baseSchema) {
           if (baseSchema.properties) {
@@ -171,7 +175,7 @@ export class InterfaceParser {
         }
       }
 
-      Object.assign(allProperties, def.properties);
+      Object.assign(allProperties, definition.properties);
 
       const parsedProperties = {};
       for (const [key, value] of Object.entries(allProperties)) {
@@ -180,8 +184,8 @@ export class InterfaceParser {
         } else {
           parsedProperties[key] = this.parseType(value, key);
         }
-        if (def.examples[key]) {
-          parsedProperties[key].example = def.examples[key];
+        if (definition.examples[key]) {
+          parsedProperties[key].example = definition.examples[key];
         }
       }
 
@@ -190,7 +194,9 @@ export class InterfaceParser {
         properties: parsedProperties,
         required: Array.from(requiredFields),
         description: `${name}${
-          def.extends.length ? ` extends ${def.extends.join(", ")}` : ""
+          definition.extends.length
+            ? ` extends ${definition.extends.join(", ")}`
+            : ""
         } (Interface)`,
       };
 
@@ -232,31 +238,31 @@ export class InterfaceParser {
       type = type.replace(/[;\r\n]/g, "").trim();
     }
 
-    let prop: any = { type: type };
+    let property: any = { type: type };
     let notRequired = field.includes("?");
-    prop.nullable = notRequired;
+    property.nullable = notRequired;
 
     if (typeof type === "string" && type.toLowerCase() === "datetime") {
-      prop.type = "string";
-      prop.format = "date-time";
-      prop.example = "2021-03-23T16:13:08.489+01:00";
+      property.type = "string";
+      property.format = "date-time";
+      property.example = "2021-03-23T16:13:08.489+01:00";
     } else if (typeof type === "string" && type.toLowerCase() === "date") {
-      prop.type = "string";
-      prop.format = "date";
-      prop.example = "2021-03-23";
+      property.type = "string";
+      property.format = "date";
+      property.example = "2021-03-23";
     } else {
       const standardTypes = ["string", "number", "boolean", "integer"];
       if (
         typeof type === "string" &&
         !standardTypes.includes(type.toLowerCase())
       ) {
-        delete prop.type;
-        prop.$ref = `#/components/schemas/${type}`;
+        delete property.type;
+        property.$ref = `#/components/schemas/${type}`;
       } else {
         if (typeof type === "string") {
-          prop.type = type.toLowerCase();
+          property.type = type.toLowerCase();
         }
-        prop.example =
+        property.example =
           this.exampleGenerator.exampleByType(type) ||
           this.exampleGenerator.exampleByField(field);
       }
@@ -265,10 +271,10 @@ export class InterfaceParser {
     if (isArray) {
       return {
         type: "array",
-        items: prop,
+        items: property,
       };
     }
 
-    return prop;
+    return property;
   }
 }

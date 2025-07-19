@@ -1,6 +1,4 @@
-// @ts-expect-error moduleResolution:nodenext issue 54523
-import { VineValidator } from "@vinejs/vine";
-import ExampleGenerator from "../example";
+import ExampleGenerator from "../example.js";
 import _ from "lodash";
 
 export class ValidatorParser {
@@ -9,10 +7,8 @@ export class ValidatorParser {
     this.exampleGenerator = new ExampleGenerator({});
   }
   async validatorToObject(
-    validator: VineValidator<any, any>
+    validator: any
   ): Promise<Record<string, any>> {
-    // console.dir(validator.toJSON()["refs"], { depth: null });
-    // console.dir(json, { depth: null });
     const obj: Record<string, any> = {
       type: "object",
       ...this.#parseSchema(
@@ -20,7 +16,6 @@ export class ValidatorParser {
         validator.toJSON()["refs"]
       ),
     };
-    // console.dir(obj, { depth: null });
     const testObj: Record<string, any> = this.#objToTest(obj["properties"]);
     return await this.#parsePropsAndMeta(obj, testObj, validator);
   }
@@ -28,9 +23,8 @@ export class ValidatorParser {
   async #parsePropsAndMeta(
     obj: Record<string, any>,
     testObj: Record<string, any>,
-    validator: VineValidator<any, any>
+    validator: any
   ): Promise<Record<string, any>> {
-    // console.log(Object.keys(errors));
     const { SimpleMessagesProvider } = await import("@vinejs/vine");
     const [e] = await validator.tryValidate(testObj, {
       messagesProvider: new SimpleMessagesProvider({
@@ -49,21 +43,21 @@ export class ValidatorParser {
       return obj;
     }
 
-    const msgs = e.messages;
+    const messages = e.messages;
 
-    for (const m of msgs) {
-      const err = m["message"];
-      let objField = m["field"].replace(".", ".properties.");
-      if (m["field"].includes(".0")) {
+    for (const message of messages) {
+      const error = message["message"];
+      let objField = message["field"].replace(".", ".properties.");
+      if (message["field"].includes(".0")) {
         objField = objField.replaceAll(`.0`, ".items");
       }
-      if (err === "TYPE") {
+      if (error === "TYPE") {
         _.set(obj["properties"], objField, {
           ..._.get(obj["properties"], objField),
-          type: m["rule"],
-          example: this.exampleGenerator.exampleByType(m["rule"]),
+          type: message["rule"],
+          example: this.exampleGenerator.exampleByType(message["rule"]),
         });
-        if (m["rule"] === "string") {
+        if (message["rule"] === "string") {
           if (_.get(obj["properties"], objField)["minimum"]) {
             _.set(obj["properties"], objField, {
               ..._.get(obj["properties"], objField),
@@ -82,27 +76,28 @@ export class ValidatorParser {
 
         _.set(
           testObj,
-          m["field"],
-          this.exampleGenerator.exampleByType(m["rule"])
+          message["field"],
+          this.exampleGenerator.exampleByType(message["rule"])
         );
       }
 
-      if (err === "FORMAT") {
+      if (error === "FORMAT") {
         _.set(obj["properties"], objField, {
           ..._.get(obj["properties"], objField),
-          format: m["rule"],
+          format: message["rule"],
           type: "string",
-          example: this.exampleGenerator.exampleByValidatorRule(m["rule"]),
+          example: this.exampleGenerator.exampleByValidatorRule(
+            message["rule"]
+          ),
         });
         _.set(
           testObj,
-          m["field"],
-          this.exampleGenerator.exampleByValidatorRule(m["rule"])
+          message["field"],
+          this.exampleGenerator.exampleByValidatorRule(message["rule"])
         );
       }
     }
 
-    // console.dir(obj, { depth: null });
     obj["example"] = testObj;
     return obj;
   }
@@ -128,38 +123,35 @@ export class ValidatorParser {
   #parseSchema(json: any, refs: any): Record<string, any> {
     const obj: Record<string, any> = {};
     const required: any[] = [];
-    for (const p of json["properties"]) {
-      let meta = this.#getMetaFromValidations(p["validations"], refs);
-      // console.dir(p, { depth: null });
-      // console.dir(validations, { depth: null });
-      // console.log(min, max, choices, regex);
+    for (const property of json["properties"]) {
+      let meta = this.#getMetaFromValidations(property["validations"], refs);
 
-      const type = p["type"];
-      const field = p["fieldName"];
+      const type = property["type"];
+      const field = property["fieldName"];
 
       if (type === "object") {
-        console.log(field, p);
-        obj[field] = { type: "object", ...this.#parseSchema(p, refs) };
+        console.log(field, property);
+        obj[field] = { type: "object", ...this.#parseSchema(property, refs) };
       } else {
         // if array
         if (type === "array") {
-          if (p["each"]["type"] === "object") {
+          if (property["each"]["type"] === "object") {
             obj[field] = {
               type: "array",
               items: {
                 type: "object",
-                ...this.#parseSchema(p["each"], refs),
+                ...this.#parseSchema(property["each"], refs),
               },
             };
           } else {
             const meta = this.#getMetaFromValidations(
-              p["each"]["validations"],
+              property["each"]["validations"],
               refs
             );
             obj[field] = {
               type: "array",
               items: {
-                type: this.#getType(p["each"]["type"]),
+                type: this.#getType(property["each"]["type"]),
                 ...meta,
                 example:
                   meta.example ??
@@ -179,11 +171,11 @@ export class ValidatorParser {
           };
         }
       }
-      if (!p["isOptional"]) required.push(p["fieldName"]);
+      if (!property["isOptional"]) required.push(property["fieldName"]);
     }
-    const res: Record<string, any> = { properties: obj };
-    if (required.length > 0) res["required"] = required;
-    return res;
+    const result: Record<string, any> = { properties: obj };
+    if (required.length > 0) result["required"] = required;
+    return result;
   }
 
   #getType(type: string) {
@@ -210,21 +202,27 @@ export class ValidatorParser {
       pattern?: string;
       example?: any;
     } = {};
-    for (const v of validations) {
-      if (refs[v["ruleFnId"]].options?.example) {
-        meta = { ...meta, example: refs[v["ruleFnId"]].options.example };
+    for (const validation of validations) {
+      if (refs[validation["ruleFnId"]].options?.example) {
+        meta = {
+          ...meta,
+          example: refs[validation["ruleFnId"]].options.example,
+        };
       }
-      if (refs[v["ruleFnId"]].options?.min) {
-        meta = { ...meta, minimum: refs[v["ruleFnId"]].options.min };
+      if (refs[validation["ruleFnId"]].options?.min) {
+        meta = { ...meta, minimum: refs[validation["ruleFnId"]].options.min };
       }
-      if (refs[v["ruleFnId"]].options?.max) {
-        meta = { ...meta, maximum: refs[v["ruleFnId"]].options.max };
+      if (refs[validation["ruleFnId"]].options?.max) {
+        meta = { ...meta, maximum: refs[validation["ruleFnId"]].options.max };
       }
-      if (refs[v["ruleFnId"]].options?.choices) {
-        meta = { ...meta, enum: refs[v["ruleFnId"]].options.choices };
+      if (refs[validation["ruleFnId"]].options?.choices) {
+        meta = { ...meta, enum: refs[validation["ruleFnId"]].options.choices };
       }
-      if (refs[v["ruleFnId"]].options?.toString().includes("/")) {
-        meta = { ...meta, pattern: refs[v["ruleFnId"]].options.toString() };
+      if (refs[validation["ruleFnId"]].options?.toString().includes("/")) {
+        meta = {
+          ...meta,
+          pattern: refs[validation["ruleFnId"]].options.toString(),
+        };
       }
     }
     return meta;

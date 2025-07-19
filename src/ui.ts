@@ -1,6 +1,12 @@
-import { scalarCustomCss } from "./scalarCustomCss";
-import type { options } from "./types";
+import { scalarCustomCss } from "./scalarCustomCss.js";
+import type { options } from "./types.js";
 
+/**
+ * Swagger UI
+ * @param url string
+ * @param options options
+ * @returns
+ */
 export function ui(url: string, options?: options) {
   const persistAuthString = options?.persistAuthorization
     ? "persistAuthorization: true,"
@@ -36,6 +42,12 @@ export function ui(url: string, options?: options) {
 		</html>`;
 }
 
+/**
+ * Rapidoc UI
+ * @param url string
+ * @param style string
+ * @returns
+ */
 export function rapidoc(url: string, style = "view") {
   return (
     `
@@ -80,7 +92,16 @@ export function rapidoc(url: string, style = "view") {
   );
 }
 
-export function scalar(url: string, proxyUrl: string = "https://proxy.scalar.com") {
+/**
+ * Scalar UI
+ * @param url string
+ * @param proxyUrl string
+ * @returns
+ */
+export function scalar(
+  url: string,
+  proxyUrl: string = "https://proxy.scalar.com"
+) {
   return `
       <!doctype html>
       <html>
@@ -105,6 +126,12 @@ export function scalar(url: string, proxyUrl: string = "https://proxy.scalar.com
     `;
 }
 
+/**
+ * Stoplight UI
+ * @param url string
+ * @param theme "light" | "dark"
+ * @returns
+ */
 export function stoplight(url: string, theme: "light" | "dark" = "dark") {
   return `
       <!doctype html>

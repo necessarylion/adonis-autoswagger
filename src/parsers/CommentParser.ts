@@ -1,11 +1,11 @@
 import HTTPStatusCode from "http-status-code";
-import { isJSONString, getBetweenBrackets } from "../helpers";
+import { isJSONString, getBetweenBrackets } from "./helpers.js";
 import util from "util";
 import extract from "extract-comments";
 import fs from "fs";
 import _ from "lodash";
-import ExampleGenerator from "../example";
-import type { options } from "../types";
+import ExampleGenerator from "../example.js";
+import type { options } from "../types.js";
 
 export class CommentParser {
   private parsedFiles: { [file: string]: string } = {};
@@ -134,40 +134,40 @@ export class CommentParser {
       required = false;
     }
 
-    let m = line.match("@param([a-zA-Z]*)");
-    if (m !== null) {
-      where = m[1].toLowerCase();
-      line = line.replace(m[0] + " ", "");
+    let match = line.match("@param([a-zA-Z]*)");
+    if (match !== null) {
+      where = match[1].toLowerCase();
+      line = line.replace(match[0] + " ", "");
     }
 
-    let [param, des, meta] = line.split(" - ");
+    let [param, description, meta] = line.split(" - ");
     if (typeof param === "undefined") {
       return;
     }
-    if (typeof des === "undefined") {
-      des = "";
+    if (typeof description === "undefined") {
+      description = "";
     }
 
     if (typeof meta !== "undefined") {
       if (meta.includes("@required")) {
         required = true;
       }
-      let en = getBetweenBrackets(meta, "enum");
+      let enumsFromMeta = getBetweenBrackets(meta, "enum");
       example = getBetweenBrackets(meta, "example");
-      const mtype = getBetweenBrackets(meta, "type");
-      if (mtype !== "") {
-        type = mtype;
+      const typeFromMeta = getBetweenBrackets(meta, "type");
+      if (typeFromMeta !== "") {
+        type = typeFromMeta;
       }
-      if (en !== "") {
-        enums = en.split(",");
+      if (enumsFromMeta !== "") {
+        enums = enumsFromMeta.split(",");
         example = enums[0];
       }
     }
 
-    let p = {
+    let parameter = {
       in: where,
       name: param,
-      description: des,
+      description: description,
       schema: {
         example: example,
         type: type,
@@ -176,10 +176,10 @@ export class CommentParser {
     };
 
     if (enums.length > 1) {
-      p["schema"]["enum"] = enums;
+      parameter["schema"]["enum"] = enums;
     }
 
-    return { [param]: p };
+    return { [param]: parameter };
   }
 
   #parseResponseHeader(
@@ -190,39 +190,39 @@ export class CommentParser {
     let type: string = "string";
     let enums: any[] = [];
     const line: string = responseLine.replace("@responseHeader ", "");
-    let [status, name, desc, meta]: string[] = line.split(" - ");
+    let [status, name, descriptionFromLine, meta]: string[] = line.split(" - ");
 
     if (typeof status === "undefined" || typeof name === "undefined") {
       return null;
     }
 
-    if (typeof desc !== "undefined") {
-      description = desc;
+    if (typeof descriptionFromLine !== "undefined") {
+      description = descriptionFromLine;
     }
 
     if (name.includes("@use")) {
       let use = getBetweenBrackets(name, "use");
       const used = use.split(",");
-      let h = {};
+      let header = {};
       used.forEach((u) => {
         if (typeof this.options.common.headers[u] === "undefined") {
           return;
         }
         const common = this.options.common.headers[u];
-        h = { ...h, ...common };
+        header = { ...header, ...common };
       });
 
       return {
         status: status,
-        header: h,
+        header: header,
       };
     }
 
     if (typeof meta !== "undefined") {
       example = getBetweenBrackets(meta, "example");
-      const mtype = getBetweenBrackets(meta, "type");
-      if (mtype !== "") {
-        type = mtype;
+      const typeFromMeta = getBetweenBrackets(meta, "type");
+      if (typeFromMeta !== "") {
+        type = typeFromMeta;
       }
     }
 
@@ -240,18 +240,18 @@ export class CommentParser {
       }
     }
 
-    let h = {
+    let header = {
       schema: { type: type, example: example },
       description: description,
     };
 
     if (enums.length > 1) {
-      h["schema"]["enum"] = enums;
+      header["schema"]["enum"] = enums;
     }
     return {
       status: status,
       header: {
-        [name]: h,
+        [name]: header,
       },
     };
   }
@@ -259,10 +259,10 @@ export class CommentParser {
   #parseResponseBody(responseLine: string): Record<string, any> {
     let responses: Record<string, any> = {};
     const line: string = responseLine.replace("@responseBody ", "");
-    let [status, res, desc]: string[] = line.split(" - ");
+    let [status, res, description]: string[] = line.split(" - ");
     if (typeof status === "undefined") return;
     responses[status] = this.#parseBody(res, "responseBody");
-    responses[status]["description"] = desc;
+    responses[status]["description"] = description;
     return responses;
   }
 
@@ -304,12 +304,12 @@ export class CommentParser {
           },
         });
       });
-      const p = props.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+      const properties = props.reduce((acc, curr) => ({ ...acc, ...curr }), {});
       const appends = Object.keys(parsedRef).filter((k) => !ks.includes(k));
-      json = p;
+      json = properties;
       if (appends.length > 0) {
-        appends.forEach((a) => {
-          json[a] = parsedRef[a];
+        appends.forEach((append) => {
+          json[append] = parsedRef[append];
         });
       }
     } else {
@@ -343,7 +343,7 @@ export class CommentParser {
     if (isJson) {
       // No need to try/catch this JSON.parse as we already did that in the isJSONString function
       const json = JSON.parse(line);
-      const o = this.#jsonToObj(json);
+      const obj = this.#jsonToObj(json);
       return {
         content: {
           "application/json": {
@@ -351,7 +351,7 @@ export class CommentParser {
               type: Array.isArray(json) ? "array" : "object",
               ...(Array.isArray(json)
                 ? { items: this.#arrayItems(json) }
-                : o),
+                : obj),
             },
 
             example: this.exampleGenerator.jsonToRef(json),
@@ -365,11 +365,11 @@ export class CommentParser {
   #arrayItems(json: any[]): Record<string, any> {
     const oneOf: any[] = [];
 
-    const t: string = typeof json[0];
+    const type: string = typeof json[0];
 
-    if (t === "string") {
-      json.forEach((j) => {
-        const value = this.exampleGenerator.parseRef(j);
+    if (type === "string") {
+      json.forEach((item) => {
+        const value = this.exampleGenerator.parseRef(item);
 
         if (_.has(value, "content.application/json.schema.$ref")) {
           oneOf.push({
@@ -386,19 +386,19 @@ export class CommentParser {
   }
 
   #jsonToObj(json: any): Record<string, any> {
-    const o: Record<string, any> = {
+    const obj: Record<string, any> = {
       type: "object",
       properties: Object.keys(json)
         .map((key) => {
-          const t: string = typeof json[key];
-          const v: any = json[key];
-          let value: any = v;
-          if (t === "object") {
+          const type: string = typeof json[key];
+          const val: any = json[key];
+          let value: any = val;
+          if (type === "object") {
             value = this.#jsonToObj(json[key]);
           }
-          if (t === "string" && v.includes("<") && v.includes(">")) {
-            value = this.exampleGenerator.parseRef(v);
-            if (v.includes("[]")) {
+          if (type === "string" && val.includes("<") && val.includes(">")) {
+            value = this.exampleGenerator.parseRef(val);
+            if (val.includes("[]")) {
               let ref: string = "";
               if (_.has(value, "content.application/json.schema.$ref")) {
                 ref = value["content"]["application/json"]["schema"]["$ref"];
@@ -427,9 +427,7 @@ export class CommentParser {
         })
         .reduce((acc, curr) => ({ ...acc, ...curr }), {}),
     };
-    // console.dir(o, { depth: null });
-    // console.log(json);
-    return o;
+    return obj;
   }
 
   async getAnnotations(
@@ -445,11 +443,11 @@ export class CommentParser {
     } else {
       try {
         const readFile = util.promisify(fs.readFile);
-        const data = await readFile(file, "utf8");
-        for (const line of data.split("\n")) {
-          const l = line.trim();
-          if (!l.startsWith("@")) {
-            newdata += l + "\n";
+        const fileContent = await readFile(file, "utf8");
+        for (const line of fileContent.split("\n")) {
+          const trimmedLine = line.trim();
+          if (!trimmedLine.startsWith("@")) {
+            newdata += trimmedLine + "\n";
           }
         }
         this.parsedFiles[file] = newdata;

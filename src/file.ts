@@ -1,14 +1,27 @@
 import YAML from "json-to-pretty-yaml";
 import fs from "fs";
-import type { options } from "./types";
-
+import type { options } from "./types.js";
+/**
+ * Convert json to yaml
+ * @param json any
+ * @returns
+ */
 export function jsonToYaml(json: any) {
   return YAML.stringify(json);
 }
 
-import { AdonisRoutes } from "./types";
+import { AdonisRoutes } from "./types.js";
 
-export async function json(routes: AdonisRoutes, options: options): Promise<any> {
+/**
+ * Generate json output
+ * @param routes AdonisRoutes
+ * @param options options
+ * @returns
+ */
+export async function json(
+  routes: AdonisRoutes,
+  options: options
+): Promise<any> {
   if (process.env.NODE_ENV === (options.productionEnv || "production")) {
     const str: string = await readFile(options.path, "json");
     return JSON.parse(str);
@@ -16,6 +29,11 @@ export async function json(routes: AdonisRoutes, options: options): Promise<any>
   return await this.generate(routes, options);
 }
 
+/**
+ * Write swagger file
+ * @param routes AdonisRoutes
+ * @param options options
+ */
 export async function writeFile(
   routes: AdonisRoutes,
   options: options
@@ -29,6 +47,12 @@ export async function writeFile(
   fs.writeFileSync(filePathJson, JSON.stringify(json, null, 2));
 }
 
+/**
+ * Read swagger file
+ * @param rootPath string
+ * @param type string
+ * @returns
+ */
 export async function readFile(
   rootPath: string,
   type: string = "yml"
@@ -42,6 +66,12 @@ export async function readFile(
   return data;
 }
 
+/**
+ * Generate docs
+ * @param routes AdonisRoutes
+ * @param options options
+ * @returns
+ */
 export async function docs(
   routes: AdonisRoutes,
   options: options
@@ -52,6 +82,12 @@ export async function docs(
   return jsonToYaml(await this.generate(routes, options));
 }
 
+/**
+ * Get files in directory
+ * @param dir string
+ * @param files_ string[]
+ * @returns
+ */
 export async function getFiles(
   dir: string,
   files_?: string[]

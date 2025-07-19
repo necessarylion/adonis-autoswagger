@@ -1,5 +1,4 @@
-import YAML from "json-to-pretty-yaml";
-import { serializeV6Middleware, serializeV6Handler } from "./adonishelpers";
+import { serializeV6Middleware, serializeV6Handler } from "./adonishelpers.js";
 import {
   InterfaceParser,
   ModelParser,
@@ -7,15 +6,13 @@ import {
   RouteParser,
   ValidatorParser,
   EnumParser,
-} from "./parsers/index";
+} from "./parsers/index.js";
 import _, { isEmpty, isUndefined } from "lodash";
 
-import type { options, AdonisRoutes, v6Handler, AdonisRoute } from "./types";
+import type { options, AdonisRoutes, v6Handler, AdonisRoute } from "./types.js";
 
-import { mergeParams, formatOperationId } from "./helpers";
-import ExampleGenerator, { ExampleInterfaces } from "./example";
-// @ts-expect-error moduleResolution:nodenext issue 54523
-import { VineValidator } from "@vinejs/vine";
+import { mergeParams, formatOperationId } from "./helpers.js";
+import ExampleGenerator, { ExampleInterfaces } from "./example.js";
 import {
   getFiles,
   json,
@@ -23,7 +20,7 @@ import {
   jsonToYaml,
   readFile,
   writeFile,
-} from "./file";
+} from "./file.js";
 import {
   getEnums,
   getInterfaces,
@@ -31,8 +28,8 @@ import {
   getSchemas,
   getSerializers,
   getValidators,
-} from "./schema";
-import { rapidoc, scalar, stoplight, ui } from "./ui";
+} from "./schema.js";
+import { rapidoc, scalar, stoplight, ui } from "./ui.js";
 import path from "path";
 import fs from "fs";
 import { startCase } from "lodash";
@@ -71,6 +68,12 @@ export class AutoSwagger {
   getInterfaces = getInterfaces;
   getEnums = getEnums;
 
+  /**
+   * Generate swagger spec
+   * @param adonisRoutes
+   * @param options
+   * @returns
+   */
   private async generate(adonisRoutes: AdonisRoutes, options: options) {
     this.options = {
       ...{
@@ -388,6 +391,11 @@ export class AutoSwagger {
     return docs;
   }
 
+  /**
+   * Get data based on adonis version
+   * @param route AdonisRoute
+   * @returns
+   */
   private async getDataBasedOnAdonisVersion(route: AdonisRoute) {
     let sourceFile: string = "";
     let action: string = "";

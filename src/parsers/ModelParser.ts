@@ -1,7 +1,7 @@
 import { snakeCase } from "lodash";
-import { isJSONString, getBetweenBrackets } from "../helpers";
-import ExampleGenerator from "../example";
-import { standardTypes } from "../types";
+import { isJSONString, getBetweenBrackets } from "./helpers.js";
+import ExampleGenerator from "../example.js";
+import { standardTypes } from "../types.js";
 
 export class ModelParser {
   exampleGenerator: ExampleGenerator;
@@ -11,7 +11,7 @@ export class ModelParser {
     this.exampleGenerator = new ExampleGenerator({});
   }
 
-  parseModelProperties(data: string): {
+  parseModelProperties(fileContent: string): {
     name: string;
     props: Record<string, any>;
     required: any[];
@@ -19,8 +19,10 @@ export class ModelParser {
     let props: Record<string, any> = {};
     let required: any[] = [];
     // remove empty lines
-    data = data.replace(/\t/g, "").replace(/^(?=\n)$|^\s*|\s*$|\n\n+/gm, "");
-    const lines: string[] = data.split("\n");
+    fileContent = fileContent
+      .replace(/\t/g, "")
+      .replace(/^(?=\n)$|^\s*|\s*$|\n\n+/gm, "");
+    const lines: string[] = fileContent.split("\n");
     let softDelete: boolean = false;
     let name: string = "";
     lines.forEach((line, index) => {
@@ -55,24 +57,24 @@ export class ModelParser {
       )
         return;
 
-      let s: string[] = [];
+      let splittedLine: string[] = [];
 
       if (line.includes("declare ")) {
-        s = line.split("declare ");
+        splittedLine = line.split("declare ");
       }
       if (line.startsWith("public ")) {
         if (line.startsWith("public get")) {
-          s = line.split("public get");
-          let s2 = s[1].replace(/;/g, "").split(":");
+          splittedLine = line.split("public get");
+          let splittedLine2 = splittedLine[1].replace(/;/g, "").split(":");
         } else {
-          s = line.split("public ");
+          splittedLine = line.split("public ");
         }
       }
 
-      let s2 = s[1].replace(/;/g, "").split(":");
+      let splittedLine2 = splittedLine[1].replace(/;/g, "").split(":");
 
-      let field = s2[0];
-      let type = s2[1] || "";
+      let field = splittedLine2[0];
+      let type = splittedLine2[1] || "";
       type = type.trim();
       let enums: any[] = [];
       let format = "";
@@ -80,30 +82,30 @@ export class ModelParser {
       let example: any = null;
 
       if (index > 0 && lines[index - 1].includes("@enum")) {
-        const l = lines[index - 1];
-        let en = getBetweenBrackets(l, "enum");
-        if (en !== "") {
-          enums = en.split(",");
+        const line = lines[index - 1];
+        let enumsFromLine = getBetweenBrackets(line, "enum");
+        if (enumsFromLine !== "") {
+          enums = enumsFromLine.split(",");
           example = enums[0];
         }
       }
 
       if (index > 0 && lines[index - 1].includes("@format")) {
-        const l = lines[index - 1];
-        let en = getBetweenBrackets(l, "format");
-        if (en !== "") {
-          format = en;
+        const line = lines[index - 1];
+        let formatFromLine = getBetweenBrackets(line, "format");
+        if (formatFromLine !== "") {
+          format = formatFromLine;
         }
       }
 
       if (index > 0 && lines[index - 1].includes("@example")) {
-        const l = lines[index - 1];
-        let match = l.match(/example\(([^()]*)\)/g);
+        const line = lines[index - 1];
+        let match = line.match(/example\(([^()]*)\)/g);
         if (match !== null) {
-          const m = match[0].replace("example(", "").replace(")", "");
-          example = m;
+          const exampleFromLine = match[0].replace("example(", "").replace(")", "");
+          example = exampleFromLine;
           if (type === "number") {
-            example = parseInt(m);
+            example = parseInt(exampleFromLine);
           }
         }
       }
@@ -113,10 +115,10 @@ export class ModelParser {
       }
 
       if (index > 0 && lines[index - 1].includes("@props")) {
-        const l = lines[index - 1].replace("@props", "props");
-        const j = getBetweenBrackets(l, "props");
-        if (isJSONString(j)) {
-          keyprops = JSON.parse(j);
+        const line = lines[index - 1].replace("@props", "props");
+        const json = getBetweenBrackets(line, "props");
+        if (isJSONString(json)) {
+          keyprops = JSON.parse(json);
         }
       }
 
@@ -151,8 +153,8 @@ export class ModelParser {
 
       // if relation to another model
       if (type.includes("typeof")) {
-        s = type.split("typeof ");
-        type = "#/components/schemas/" + s[1].slice(0, -1);
+        splittedLine = type.split("typeof ");
+        type = "#/components/schemas/" + splittedLine[1].slice(0, -1);
         indicator = "$ref";
       } else {
         if (standardTypes.includes(type.toLowerCase())) {

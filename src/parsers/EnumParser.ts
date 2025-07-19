@@ -3,9 +3,9 @@ import { startCase } from "lodash";
 export class EnumParser {
   constructor() {}
 
-  parseEnums(data: string): Record<string, any> {
+  parseEnums(fileContent: string): Record<string, any> {
     const enums: Record<string, any> = {};
-    const lines: string[] = data.split("\n");
+    const lines: string[] = fileContent.split("\n");
     let currentEnum: string | null = null;
     let description: string | null = null;
 
