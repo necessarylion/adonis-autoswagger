@@ -7,7 +7,7 @@ import {
   RouteParser,
   ValidatorParser,
   EnumParser,
-} from "./parsers";
+} from "./parsers/index";
 import _, { isEmpty, isUndefined } from "lodash";
 
 import type { options, AdonisRoutes, v6Handler, AdonisRoute } from "./types";
