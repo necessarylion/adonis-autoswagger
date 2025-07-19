@@ -1,4 +1,4 @@
-import { serializeV6Middleware, serializeV6Handler } from "./adonishelpers";
+import { serializeV6Middleware, serializeV6Handler } from "./adonis_helpers";
 import {
   InterfaceParser,
   ModelParser,

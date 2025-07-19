@@ -1,4 +1,4 @@
-import { scalarCustomCss } from "./scalarCustomCss";
+import { scalarCustomCss } from "./scalar_custom_css";
 import type { options } from "./types";
 
 /**
