@@ -1,17 +1,18 @@
 import { scalarCustomCss } from "./scalar_custom_css";
 import type { options } from "./types";
 
-/**
- * Swagger UI
- * @param url string
- * @param options options
- * @returns
- */
-export function ui(url: string, options?: options) {
-  const persistAuthString = options?.persistAuthorization
-    ? "persistAuthorization: true,"
-    : "";
-  return `<!DOCTYPE html>
+export class UI {
+  /**
+   * Swagger UI
+   * @param url string
+   * @param options options
+   * @returns
+   */
+  ui(url: string, options?: options) {
+    const persistAuthString = options?.persistAuthorization
+      ? "persistAuthorization: true,"
+      : "";
+    return `<!DOCTYPE html>
 		<html lang="en">
 		<head>
 				<meta charset="UTF-8">
@@ -40,17 +41,17 @@ export function ui(url: string, options?: options) {
 				</script>
 		</body>
 		</html>`;
-}
+  }
 
-/**
- * Rapidoc UI
- * @param url string
- * @param style string
- * @returns
- */
-export function rapidoc(url: string, style = "view") {
-  return (
-    `
+  /**
+   * Rapidoc UI
+   * @param url string
+   * @param style string
+   * @returns
+   */
+  rapidoc(url: string, style = "view") {
+    return (
+      `
     <!doctype html> <!-- Important: must specify -->
     <html>
       <head>
@@ -61,8 +62,8 @@ export function rapidoc(url: string, style = "view") {
       <body>
         <rapi-doc
           spec-url = "` +
-    url +
-    `"
+      url +
+      `"
       theme = "dark"
       bg-color = "#24283b"
       schema-style="tree"
@@ -77,8 +78,8 @@ export function rapidoc(url: string, style = "view") {
       heading-text = "Documentation"
       sort-tags = "true"
       render-style = "` +
-    style +
-    `"
+      style +
+      `"
       default-schema-tab = "example"
       show-components = "true"
       allow-spec-url-load = "false"
@@ -89,20 +90,17 @@ export function rapidoc(url: string, style = "view") {
       </body>
     </html>
     `
-  );
-}
+    );
+  }
 
-/**
- * Scalar UI
- * @param url string
- * @param proxyUrl string
- * @returns
- */
-export function scalar(
-  url: string,
-  proxyUrl: string = "https://proxy.scalar.com"
-) {
-  return `
+  /**
+   * Scalar UI
+   * @param url string
+   * @param proxyUrl string
+   * @returns
+   */
+  scalar(url: string, proxyUrl: string = "https://proxy.scalar.com") {
+    return `
       <!doctype html>
       <html>
         <head>
@@ -124,16 +122,16 @@ export function scalar(
         </body>
       </html>
     `;
-}
+  }
 
-/**
- * Stoplight UI
- * @param url string
- * @param theme "light" | "dark"
- * @returns
- */
-export function stoplight(url: string, theme: "light" | "dark" = "dark") {
-  return `
+  /**
+   * Stoplight UI
+   * @param url string
+   * @param theme "light" | "dark"
+   * @returns
+   */
+  stoplight(url: string, theme: "light" | "dark" = "dark") {
+    return `
       <!doctype html>
       <html data-theme="${theme}">
         <head>
@@ -153,4 +151,5 @@ export function stoplight(url: string, theme: "light" | "dark" = "dark") {
         </body>
       </html>
     `;
+  }
 }
