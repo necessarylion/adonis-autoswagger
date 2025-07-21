@@ -24,6 +24,15 @@ export class SchemaService extends FileService {
   protected routeParser: RouteParser;
   protected validatorParser: ValidatorParser;
   protected customPaths: Record<string, any> = {};
+
+  constructor(options: options) {
+    super();
+    this.options = options;
+    this.modelParser = new ModelParser(this.options.snakeCase);
+    this.interfaceParser = new InterfaceParser(this.options.snakeCase);
+    this.validatorParser = new ValidatorParser();
+    this.enumParser = new EnumParser();
+  }
   /**
    * Get all schemas
    * @returns

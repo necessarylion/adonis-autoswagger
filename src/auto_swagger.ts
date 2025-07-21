@@ -1,18 +1,11 @@
 import { serializeV6Middleware, serializeV6Handler } from "./adonis_helpers";
-import {
-  InterfaceParser,
-  ModelParser,
-  CommentParser,
-  RouteParser,
-  ValidatorParser,
-  EnumParser,
-} from "./parsers/index";
+import { CommentParser, RouteParser } from "./parsers/index";
 import _, { isEmpty, isUndefined } from "lodash";
 
 import type { options, AdonisRoutes, v6Handler, AdonisRoute } from "./types";
 
 import { mergeParams, formatOperationId } from "./helpers";
-import ExampleGenerator, { ExampleInterfaces } from "./example";
+import ExampleGenerator from "./example";
 import path from "path";
 import fs from "fs";
 import { startCase } from "lodash";
@@ -28,17 +21,12 @@ class AutoSwagger {
   private options: options;
   private schemas: Record<string, any> = {};
   private commentParser: CommentParser;
-  private modelParser: ModelParser;
-  private interfaceParser: InterfaceParser;
-  private enumParser: EnumParser;
   private routeParser: RouteParser;
-  private validatorParser: ValidatorParser;
   private customPaths: Record<string, any> = {};
 
   constructor() {
     this.uiService = new UIService();
     this.fileService = new FileService();
-    this.schemaService = new SchemaService();
   }
 
   /**
@@ -112,12 +100,9 @@ class AutoSwagger {
       console.error(e);
     }
 
+    this.schemaService = new SchemaService(this.options);
     this.commentParser = new CommentParser(this.options);
     this.routeParser = new RouteParser(this.options);
-    this.modelParser = new ModelParser(this.options.snakeCase);
-    this.interfaceParser = new InterfaceParser(this.options.snakeCase);
-    this.validatorParser = new ValidatorParser();
-    this.enumParser = new EnumParser();
     this.schemas = await this.schemaService.getSchemas();
     if (this.options.debug) {
       console.log(this.options);
