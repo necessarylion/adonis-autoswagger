@@ -1,5 +1,5 @@
-import { scalarCustomCss } from "./scalar_custom_css";
-import type { options } from "./types";
+import { scalarCustomCss } from "#src/scalar_custom_css";
+import type { options } from "#src/types";
 
 export class UIService {
   /**

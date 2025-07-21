@@ -1,4 +1,4 @@
-import ExampleGenerator from "../example";
+import ExampleGenerator from "#src/example";
 
 export class InterfaceParser {
   exampleGenerator: ExampleGenerator;

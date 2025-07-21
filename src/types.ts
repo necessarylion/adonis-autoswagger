@@ -60,9 +60,7 @@ export interface AdonisRoute {
   handler?: string | v6Handler;
 }
 
-export interface AdonisRoutes {
-  root: AdonisRoute[];
-}
+export type AdonisRoutes = Record<string, any>
 
 export const standardTypes = [
   "string",

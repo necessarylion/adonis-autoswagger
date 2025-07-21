@@ -1,7 +1,7 @@
 /**
  * Check if a string is a valid JSON
  */
-import { camelCase, startCase } from "lodash";
+import { camelCase, startCase } from "lodash-es";
 
 /**
  * Merge params

@@ -1,7 +1,7 @@
 import YAML from "yaml";
 import fs from "fs";
-import type { options } from "./types";
-import { AdonisRoutes } from "./types";
+import type { options } from "#src/types";
+import { AdonisRoutes } from "#src/types";
 
 export class FileService {
   /**

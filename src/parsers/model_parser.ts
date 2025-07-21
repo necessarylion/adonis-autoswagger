@@ -1,7 +1,7 @@
-import { snakeCase } from "lodash";
-import { isJSONString, getBetweenBrackets } from "./helpers";
-import ExampleGenerator from "../example";
-import { standardTypes } from "../types";
+import { snakeCase } from "lodash-es";
+import { isJSONString, getBetweenBrackets } from "#src/parsers/helpers";
+import ExampleGenerator from "#src/example";
+import { standardTypes } from "#src/types";
 
 export class ModelParser {
   exampleGenerator: ExampleGenerator;

@@ -1,5 +1,5 @@
-import ExampleGenerator from "../example";
-import _ from "lodash";
+import ExampleGenerator from "#src/example";
+import { set, get, unset } from "lodash-es";
 
 export class ValidatorParser {
   exampleGenerator: ExampleGenerator;
@@ -52,29 +52,29 @@ export class ValidatorParser {
         objField = objField.replaceAll(`.0`, ".items");
       }
       if (error === "TYPE") {
-        _.set(obj["properties"], objField, {
-          ..._.get(obj["properties"], objField),
+        set(obj["properties"], objField, {
+          ...get(obj["properties"], objField),
           type: message["rule"],
           example: this.exampleGenerator.exampleByType(message["rule"]),
         });
         if (message["rule"] === "string") {
-          if (_.get(obj["properties"], objField)["minimum"]) {
-            _.set(obj["properties"], objField, {
-              ..._.get(obj["properties"], objField),
-              minLength: _.get(obj["properties"], objField)["minimum"],
+          if (get(obj["properties"], objField)["minimum"]) {
+            set(obj["properties"], objField, {
+              ...get(obj["properties"], objField),
+              minLength: get(obj["properties"], objField)["minimum"],
             });
-            _.unset(obj["properties"], objField + ".minimum");
+            unset(obj["properties"], objField + ".minimum");
           }
-          if (_.get(obj["properties"], objField)["maximum"]) {
-            _.set(obj["properties"], objField, {
-              ..._.get(obj["properties"], objField),
-              maxLength: _.get(obj["properties"], objField)["maximum"],
+          if (get(obj["properties"], objField)["maximum"]) {
+            set(obj["properties"], objField, {
+              ...get(obj["properties"], objField),
+              maxLength: get(obj["properties"], objField)["maximum"],
             });
-            _.unset(obj["properties"], objField + ".maximum");
+            unset(obj["properties"], objField + ".maximum");
           }
         }
 
-        _.set(
+        set(
           testObj,
           message["field"],
           this.exampleGenerator.exampleByType(message["rule"])
@@ -82,15 +82,15 @@ export class ValidatorParser {
       }
 
       if (error === "FORMAT") {
-        _.set(obj["properties"], objField, {
-          ..._.get(obj["properties"], objField),
+        set(obj["properties"], objField, {
+          ...get(obj["properties"], objField),
           format: message["rule"],
           type: "string",
           example: this.exampleGenerator.exampleByValidatorRule(
             message["rule"]
           ),
         });
-        _.set(
+        set(
           testObj,
           message["field"],
           this.exampleGenerator.exampleByValidatorRule(message["rule"])

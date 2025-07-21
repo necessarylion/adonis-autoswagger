@@ -1,5 +1,5 @@
-import { snakeCase } from "lodash";
-import { getBetweenBrackets } from "./parsers/helpers";
+import { snakeCase } from "lodash-es";
+import { getBetweenBrackets } from "#src/parsers/helpers";
 export default class ExampleGenerator {
   public schemas = {};
   constructor(schemas: any) {
@@ -15,7 +15,7 @@ export default class ExampleGenerator {
     const jsonObjectIsArray = Array.isArray(json);
     const out = {};
     const outArr = [];
-    for (const [k, v] of Object.entries(json)) {
+    for (let [k, v] of Object.entries(json)) {
       if (typeof v === "object") {
         if (!Array.isArray(v)) {
           v = this.jsonToRef(v);

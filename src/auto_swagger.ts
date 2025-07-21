@@ -1,18 +1,17 @@
-import { serializeV6Middleware, serializeV6Handler } from "./adonis_helpers";
-import { CommentParser, RouteParser } from "./parsers/index";
-import _, { isEmpty, isUndefined } from "lodash";
+import { serializeV6Middleware, serializeV6Handler } from "#src/adonis_helpers";
+import { CommentParser, RouteParser } from "#src/parsers/index";
+import { isEmpty, isUndefined, startCase, uniq } from "lodash-es";
 
-import type { options, AdonisRoutes, v6Handler, AdonisRoute } from "./types";
+import type { options, AdonisRoutes, v6Handler, AdonisRoute } from "#src/types";
 
-import { mergeParams, formatOperationId } from "./helpers";
-import ExampleGenerator from "./example";
+import { mergeParams, formatOperationId } from "#src/helpers";
+import ExampleGenerator from "#src/example";
 import path from "path";
 import fs from "fs";
-import { startCase } from "lodash";
 import HTTPStatusCode from "http-status-code";
-import { UIService } from "./ui";
-import { FileService } from "./file";
-import { SchemaService } from "./schema";
+import { UIService } from "#src/ui";
+import { FileService } from "#src/file";
+import { SchemaService } from "#src/schema";
 
 class AutoSwagger {
   private uiService: UIService;
@@ -277,7 +276,7 @@ class AutoSwagger {
         });
       });
 
-      const { sourceFile, action, customAnnotations, operationId } =
+      let { sourceFile, action, customAnnotations, operationId } =
         await this.getDataBasedOnAdonisVersion(route);
 
       route.methods.forEach((method: string) => {
@@ -418,7 +417,7 @@ class AutoSwagger {
     }
 
     // filter unused tags
-    const usedTags = _.uniq(
+    const usedTags = uniq(
       Object.entries(paths)
         .map(
           ([, val]: [string, Record<string, any>]) =>
@@ -519,7 +518,7 @@ class AutoSwagger {
       if (sourceFile !== "") {
         console.log(
           typeof customAnnotations !== "undefined" &&
-            !_.isEmpty(customAnnotations)
+            ! isEmpty(customAnnotations)
             ? `\x1b[32m✓ FOUND for ${action}\x1b[0m`
             : `\x1b[33m✗ MISSING for ${action}\x1b[0m`,
 

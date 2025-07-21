@@ -8,10 +8,10 @@ import {
   EnumParser,
   CommentParser,
   RouteParser,
-} from "./parsers/index";
-import { ExampleInterfaces } from "./example";
-import { FileService } from "./file";
-import { options } from "./types";
+} from "#src/parsers/index";
+import { ExampleInterfaces } from "#src/example";
+import { FileService } from "#src/file";
+import { options } from "#src/types";
 import { existsSync } from "fs";
 
 export class SchemaService {
@@ -289,10 +289,7 @@ export class SchemaService {
       file = file.replace(".js", "");
       const data = await readFile(file, "utf8");
       file = file.replace(".ts", "");
-      file.split("/");
-      split[split.length - 1].replace(".ts", "");
       file = file.replace("app/", "/app/");
-
       const parsedEnums = enumParser.parseEnums(data);
       enums = {
         ...enums,

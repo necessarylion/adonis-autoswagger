@@ -4,6 +4,7 @@
   "description": "Auto-Generate swagger docs for AdonisJS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "watchexec -e ts -- tsc",
@@ -24,7 +25,7 @@
     "espree": "^9.3.1",
     "extract-comments": "^1.1.0",
     "http-status-code": "^2.1.0",
-    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21",
     "parse-imports": "^1.1.2",
     "typescript": "^5.8.2",
     "typescript-parser": "^2.6.1",
@@ -34,7 +35,8 @@
     "@types/lodash": "^4.14.202",
     "@types/node": "^20.10.4",
     "eslint": "^9.31.0",
-    "typescript-eslint": "^8.37.0"
+    "typescript-eslint": "^8.37.0",
+    "@types/lodash-es": "^4.17.12"
   },
   "files": [
     "/dist"
@@ -48,5 +50,7 @@
     "arrowParens": "always"
   },
   "packageManager": "pnpm@8.11.0",
-  "type": "module"
+  "imports": {
+    "#src/*": "./src/*.js"
+  }
 }

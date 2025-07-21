@@ -1,11 +1,11 @@
 import HTTPStatusCode from "http-status-code";
-import { isJSONString, getBetweenBrackets } from "./helpers";
+import { isJSONString, getBetweenBrackets } from "#src/parsers/helpers";
 import util from "util";
 import extract from "extract-comments";
 import fs from "fs";
-import _ from "lodash";
-import ExampleGenerator from "../example";
-import type { options } from "../types";
+import { has } from "lodash-es";
+import ExampleGenerator from "#src/example";
+import type { options } from "#src/types";
 
 export class CommentParser {
   private parsedFiles: { [file: string]: string } = {};
@@ -140,7 +140,7 @@ export class CommentParser {
       line = line.replace(match[0] + " ", "");
     }
 
-    const [param, description, meta] = line.split(" - ");
+    let [param, description, meta] = line.split(" - ");
     if (typeof param === "undefined") {
       return;
     }
@@ -270,7 +270,7 @@ export class CommentParser {
     rawLine: string
   ): Record<string, any> | undefined {
     const line: string = rawLine.replace("@requestFormDataBody ", "");
-    let json: Record<string, any> = {},
+    let json: Record<string, any> = {};
     const required: any[] = [];
     const isJson: boolean = isJSONString(line);
     if (!isJson) {
@@ -371,7 +371,7 @@ export class CommentParser {
       json.forEach((item) => {
         const value = this.exampleGenerator.parseRef(item);
 
-        if (_.has(value, "content.application/json.schema.$ref")) {
+        if (has(value, "content.application/json.schema.$ref")) {
           oneOf.push({
             $ref: value["content"]["application/json"]["schema"]["$ref"],
           });
@@ -400,10 +400,10 @@ export class CommentParser {
             value = this.exampleGenerator.parseRef(val);
             if (val.includes("[]")) {
               let ref: string = "";
-              if (_.has(value, "content.application/json.schema.$ref")) {
+              if (has(value, "content.application/json.schema.$ref")) {
                 ref = value["content"]["application/json"]["schema"]["$ref"];
               }
-              if (_.has(value, "content.application/json.schema.items.$ref")) {
+              if (has(value, "content.application/json.schema.items.$ref")) {
                 ref =
                   value["content"]["application/json"]["schema"]["items"][
                     "$" + "ref"
