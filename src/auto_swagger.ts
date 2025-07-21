@@ -21,17 +21,25 @@ import { UI } from "./ui";
 import { File } from "./file";
 import { Schema } from "./schema";
 
-class AutoSwagger extends Schema {
-  declare protected options: options;
-  declare protected schemas: Record<string, any>;
-  declare protected commentParser: CommentParser;
-  declare protected modelParser: ModelParser;
-  declare protected interfaceParser: InterfaceParser;
-  declare protected enumParser: EnumParser;
-  declare protected routeParser: RouteParser;
-  declare protected validatorParser: ValidatorParser;
-  declare protected customPaths: Record<string, any>;
+class AutoSwagger {
+  private ui: UI;
+  private file: File;
+  private schema: Schema;
+  private options: options;
+  private schemas: Record<string, any> = {};
+  private commentParser: CommentParser;
+  private modelParser: ModelParser;
+  private interfaceParser: InterfaceParser;
+  private enumParser: EnumParser;
+  private routeParser: RouteParser;
+  private validatorParser: ValidatorParser;
+  private customPaths: Record<string, any> = {};
 
+  constructor() {
+    this.ui = new UI();
+    this.file = new File();
+    this.schema = new Schema();
+  }
 
   /**
    * Get data based on adonis version
@@ -132,21 +140,5 @@ class AutoSwagger extends Schema {
     return { sourceFile, action, customAnnotations, operationId };
   }
 }
-
-function applyMixins(derivedCtor: any, constructors: any[]) {
-  constructors.forEach((baseCtor) => {
-    Object.getOwnPropertyNames(baseCtor.prototype).forEach((name) => {
-      Object.defineProperty(
-        derivedCtor.prototype,
-        name,
-        Object.getOwnPropertyDescriptor(baseCtor.prototype, name) ||
-          Object.create(null)
-      );
-    });
-  });
-}
-
-interface AutoSwagger extends UI, File, Schema {}
-applyMixins(AutoSwagger, [UI, File, Schema]);
 
 export { AutoSwagger };
