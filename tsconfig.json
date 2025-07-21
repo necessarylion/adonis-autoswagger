@@ -6,7 +6,9 @@
     "declaration": true,
     "moduleResolution": "Node16",
     "outDir": "./dist",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true
   },
   "skipLibCheck": true,
   "include": ["src/**/*"]

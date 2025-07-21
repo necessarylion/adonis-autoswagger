@@ -1,4 +1,4 @@
-import YAML from "json-to-pretty-yaml";
+import YAML from "yaml";
 import fs from "fs";
 import type { options } from "./types";
 import { AdonisRoutes } from "./types";
