@@ -19,7 +19,6 @@ class AutoSwagger {
   private fileService: FileService;
   private schemaService: SchemaService;
   private options: options;
-  private schemas: Record<string, any> = {};
   private commentParser: CommentParser;
   private routeParser: RouteParser;
   private customPaths: Record<string, any> = {};
@@ -30,34 +29,70 @@ class AutoSwagger {
   }
 
   /**
-   * Get data based on adonis version
-   * @param route AdonisRoute
+   * Returns the swagger UI
+   * @param url string
+   * @param options options
    * @returns
    */
   public ui(url: string, options?: options) {
     return this.uiService.ui(url, options);
   }
 
+  /**
+   * Returns rapidoc UI
+   * @param url
+   * @param style
+   * @returns
+   */
   public rapidoc(url: string, style = "view") {
     return this.uiService.rapidoc(url, style);
   }
 
+  /**
+   * Returns scalar UI
+   * @param url
+   * @param proxyUrl
+   * @returns
+   */
   public scalar(url: string, proxyUrl: string = "https://proxy.scalar.com") {
     return this.uiService.scalar(url, proxyUrl);
   }
 
+  /**
+   * Returns stoplight UI
+   * @param url
+   * @param theme
+   * @returns
+   */
   public stoplight(url: string, theme: "light" | "dark" = "dark") {
     return this.uiService.stoplight(url, theme);
   }
 
+  /**
+   * Converts json to yaml
+   * @param json
+   * @returns
+   */
   public jsonToYaml(json: any) {
     return this.fileService.jsonToYaml(json);
   }
 
+  /**
+   * Returns swagger json file
+   * @param routes
+   * @param options
+   * @returns
+   */
   public async json(routes: AdonisRoutes, options: options): Promise<any> {
     return this.fileService.json(routes, options, this.generate.bind(this));
   }
 
+  /**
+   * Writes swagger file
+   * @param routes
+   * @param options
+   * @returns
+   */
   public async writeFile(routes: AdonisRoutes, options: options): Promise<void> {
     return this.fileService.writeFile(
       routes,
@@ -66,10 +101,22 @@ class AutoSwagger {
     );
   }
 
+  /**
+   * Returns swagger file content
+   * @param routes
+   * @param options
+   * @returns
+   */
   public async docs(routes: AdonisRoutes, options: options): Promise<string> {
     return this.fileService.docs(routes, options, this.generate.bind(this));
   }
 
+  /**
+   * Generates the swagger spec
+   * @param adonisRoutes
+   * @param options
+   * @returns
+   */
   private async generate(adonisRoutes: AdonisRoutes, options: options) {
     this.options = {
       ...{
@@ -103,13 +150,13 @@ class AutoSwagger {
     this.schemaService = new SchemaService(this.options);
     this.commentParser = new CommentParser(this.options);
     this.routeParser = new RouteParser(this.options);
-    this.schemas = await this.schemaService.getSchemas();
+    const schemas = await this.schemaService.getSchemas();
     if (this.options.debug) {
       console.log(this.options);
-      console.log("Found Schemas", Object.keys(this.schemas));
+      console.log("Found Schemas", Object.keys(schemas));
       console.log("Using custom paths", this.customPaths);
     }
-    this.commentParser.exampleGenerator = new ExampleGenerator(this.schemas);
+    this.commentParser.exampleGenerator = new ExampleGenerator(schemas);
 
     const docs: Record<string, any> = {
       openapi: "3.0.0",
@@ -156,7 +203,7 @@ class AutoSwagger {
                 name: "X-API-Key",
               },
             },
-        schemas: this.schemas,
+        schemas: schemas,
       },
       paths: {},
       tags: [],
@@ -384,6 +431,11 @@ class AutoSwagger {
     docs.paths = paths;
     return docs;
   }
+  /**
+   * Returns action and source file for a given route
+   * @param route
+   * @returns
+   */
   private async getDataBasedOnAdonisVersion(route: AdonisRoute) {
     let sourceFile: string = "";
     let action: string = "";
