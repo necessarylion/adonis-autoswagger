@@ -14,7 +14,7 @@ import { FileService } from "./file";
 import { options } from "./types";
 import { existsSync } from "fs";
 
-export class SchemaService extends FileService {
+export class SchemaService {
   protected options: options;
   protected schemas: Record<string, any> = {};
   protected commentParser: CommentParser;
@@ -24,14 +24,15 @@ export class SchemaService extends FileService {
   protected routeParser: RouteParser;
   protected validatorParser: ValidatorParser;
   protected customPaths: Record<string, any> = {};
+  protected fileService: FileService;
 
   constructor(options: options) {
-    super();
     this.options = options;
     this.modelParser = new ModelParser(this.options.snakeCase);
     this.interfaceParser = new InterfaceParser(this.options.snakeCase);
     this.validatorParser = new ValidatorParser();
     this.enumParser = new EnumParser();
+    this.fileService = new FileService();
   }
   /**
    * Get all schemas
@@ -77,7 +78,7 @@ export class SchemaService extends FileService {
       return validators;
     }
 
-    const files = await this.getFiles(p6, []);
+    const files = await this.fileService.getFiles(p6, []);
     if (this.options.debug) {
       console.log("Found validator files", files);
     }
@@ -129,7 +130,7 @@ export class SchemaService extends FileService {
       return serializers;
     }
 
-    const files = await this.getFiles(p6, []);
+    const files = await this.fileService.getFiles(p6, []);
     if (this.options.debug) {
       console.log("Found serializer files", files);
     }
@@ -175,7 +176,7 @@ export class SchemaService extends FileService {
     if (existsSync(p6)) {
       p = p6;
     }
-    const files = await this.getFiles(p, []);
+    const files = await this.fileService.getFiles(p, []);
     const readFile = util.promisify(fs.readFile);
     if (this.options.debug) {
       console.log("Found model files", files);
@@ -231,7 +232,7 @@ export class SchemaService extends FileService {
     if (existsSync(p6)) {
       p = p6;
     }
-    const files = await this.getFiles(p, []);
+    const files = await this.fileService.getFiles(p, []);
     if (this.options.debug) {
       console.log("Found interfaces files", files);
     }
@@ -278,7 +279,7 @@ export class SchemaService extends FileService {
       p = p6;
     }
 
-    const files = await this.getFiles(p, []);
+    const files = await this.fileService.getFiles(p, []);
     if (this.options.debug) {
       console.log("Found enum files", files);
     }
