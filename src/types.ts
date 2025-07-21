@@ -32,35 +32,36 @@ export interface common {
  * Adonis routes
  */
 export interface AdonisRouteMeta {
-  resolvedHandler: {
-    type: string;
+  resolvedHandler?: {
+    type?: string;
     namespace?: string;
     method?: string;
   };
-  resolvedMiddleware: Array<{
-    type: string;
+  resolvedMiddleware?: Array<{
+    type?: string;
     args?: any[];
   }>;
 }
 
-export interface v6Handler {
+export interface V6Handler {
   method?: string;
-  moduleNameOrPath?: string;
-  reference: string | any[];
-  name: string;
+  moduleNameOrPath?: any;
+  reference?: any;
+  handle?: any;
+  name?: any;
 }
 
 export interface AdonisRoute {
-  methods: string[];
-  pattern: string;
-  meta: AdonisRouteMeta;
-  middleware: string[] | any;
+  methods?: string[];
+  pattern?: string;
+  meta?: AdonisRouteMeta;
+  middleware?: string[] | any;
   name?: string;
-  params: string[];
-  handler?: string | v6Handler;
+  params?: string[];
+  handler?: any
 }
 
-export type AdonisRoutes = any
+export type AdonisRoutes = Record<string, AdonisRoute[]>
 
 export const standardTypes = [
   "string",

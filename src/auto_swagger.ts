@@ -2,7 +2,7 @@ import { serializeV6Middleware, serializeV6Handler } from "./adonis_helpers";
 import { CommentParser, RouteParser } from "./parsers/index";
 import _, { isEmpty, isUndefined } from "lodash";
 
-import type { options, AdonisRoutes, v6Handler, AdonisRoute } from "./types";
+import type { options, AdonisRoutes, V6Handler, AdonisRoute } from "./types";
 
 import { mergeParams, formatOperationId } from "./helpers";
 import ExampleGenerator from "./example";
@@ -407,7 +407,7 @@ class AutoSwagger {
       }
     }
 
-    let v6handler: v6Handler = <v6Handler>route.handler;
+    let v6handler: V6Handler = <V6Handler>route.handler;
     if (
       v6handler.reference !== null &&
       v6handler.reference !== undefined &&
