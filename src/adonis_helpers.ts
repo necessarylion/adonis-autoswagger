@@ -1,5 +1,10 @@
-export function serializeV6Middleware(mw: any): string[] {
-  return [...mw.all()].reduce<string[]>((result, one) => {
+/**
+ * Serialize v6 middleware
+ * @param middleware any
+ * @returns
+ */
+export function serializeV6Middleware(middleware: any): string[] {
+  return [...middleware.all()].reduce<string[]>((result, one) => {
     if (typeof one === "function") {
       result.push(one.name || "closure");
       return result;
@@ -13,6 +18,11 @@ export function serializeV6Middleware(mw: any): string[] {
   }, []);
 }
 
+/**
+ * Serialize v6 handler
+ * @param handler any
+ * @returns
+ */
 export async function serializeV6Handler(handler: any): Promise<any> {
   /**
    * Value is a controller reference
@@ -33,6 +43,11 @@ export async function serializeV6Handler(handler: any): Promise<any> {
   };
 }
 
+/**
+ * Parse binding reference
+ * @param binding string | [any | any, any]
+ * @returns
+ */
 export async function parseBindingReference(
   binding: string | [any | any, any]
 ): Promise<{ moduleNameOrPath: string; method: string }> {

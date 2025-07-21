@@ -1,12 +1,17 @@
 import { snakeCase } from "lodash";
-import { getBetweenBrackets } from "./helpers";
+import { getBetweenBrackets } from "./parsers/helpers";
 export default class ExampleGenerator {
   public schemas = {};
   constructor(schemas: any) {
     this.schemas = schemas;
   }
 
-  jsonToRef(json) {
+  /**
+   * Convert json to ref
+   * @param json any
+   * @returns
+   */
+  jsonToRef(json: any) {
     const jsonObjectIsArray = Array.isArray(json);
     let out = {};
     let outArr = [];
@@ -29,6 +34,12 @@ export default class ExampleGenerator {
     return outArr.length > 0 ? outArr.flat() : out;
   }
 
+  /**
+   * Parse ref
+   * @param line string
+   * @param exampleOnly boolean
+   * @returns
+   */
   parseRef(line: string, exampleOnly = false) {
     let rawRef = line.substring(line.indexOf("<") + 1, line.lastIndexOf(">"));
 
@@ -151,6 +162,11 @@ export default class ExampleGenerator {
     };
   }
 
+  /**
+   * Example by validator rule
+   * @param rule string
+   * @returns
+   */
   exampleByValidatorRule(rule: string) {
     switch (rule) {
       case "email":
@@ -160,6 +176,17 @@ export default class ExampleGenerator {
     }
   }
 
+  /**
+   * Get schema example based on annotation
+   * @param schema string
+   * @param inc string
+   * @param exc string
+   * @param onl string
+   * @param first string
+   * @param parent string
+   * @param deepRels string[]
+   * @returns
+   */
   getSchemaExampleBasedOnAnnotation(
     schema: string,
     inc = "",
@@ -313,7 +340,12 @@ export default class ExampleGenerator {
     return props;
   }
 
-  exampleByType(type) {
+  /**
+   * Example by type
+   * @param type any
+   * @returns
+   */
+  exampleByType(type: any) {
     switch (type) {
       case "string":
         return this.exampleByField("title");
@@ -338,7 +370,13 @@ export default class ExampleGenerator {
     }
   }
 
-  exampleByField(field, type: string = "") {
+  /**
+   * Example by field
+   * @param field any
+   * @param type string
+   * @returns
+   */
+  exampleByField(field: any, type: string = "") {
     const ex = {
       datetime: "2021-03-23T16:13:08.489+01:00",
       DateTime: "2021-03-23T16:13:08.489+01:00",
@@ -375,6 +413,11 @@ export default class ExampleGenerator {
     return null;
   }
 
+  /**
+   * Get paginated data
+   * @param line string
+   * @returns
+   */
   getPaginatedData(line: string): { dataName: string; metaName: string } {
     const match = line.match(/<.*>\.paginated\((.*)\)/);
     if (!match) {
@@ -390,6 +433,10 @@ export default class ExampleGenerator {
 }
 
 export abstract class ExampleInterfaces {
+  /**
+   * Pagination interface
+   * @returns
+   */
   public static paginationInterface() {
     return {
       PaginationMeta: {
