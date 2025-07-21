@@ -1,7 +1,7 @@
 import { scalarCustomCss } from "./scalar_custom_css";
 import type { options } from "./types";
 
-export class UI {
+export class UIService {
   /**
    * Swagger UI
    * @param url string

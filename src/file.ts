@@ -3,7 +3,7 @@ import fs from "fs";
 import type { options } from "./types";
 import { AdonisRoutes } from "./types";
 
-export class File {
+export class FileService {
   /**
    * Convert json to yaml
    * @param json any

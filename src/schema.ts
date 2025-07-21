@@ -1,7 +1,6 @@
 import path from "path";
 import util from "util";
 import fs from "fs";
-import { existsSync } from "fs";
 import {
   InterfaceParser,
   ModelParser,
@@ -11,10 +10,11 @@ import {
   RouteParser,
 } from "./parsers/index";
 import { ExampleInterfaces } from "./example";
-import { File } from "./file";
+import { FileService } from "./file";
 import { options } from "./types";
+import { existsSync } from "fs";
 
-export class Schema extends File {
+export class SchemaService extends FileService {
   protected options: options;
   protected schemas: Record<string, any> = {};
   protected commentParser: CommentParser;
