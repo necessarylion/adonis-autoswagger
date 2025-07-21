@@ -192,7 +192,7 @@ export class SchemaService {
       if (parsed.name !== "") {
         name = parsed.name;
       }
-      let schema = {
+      const schema = {
         type: "object",
         properties: parsed.props,
         description: name + " (Model)",
@@ -289,8 +289,8 @@ export class SchemaService {
       file = file.replace(".js", "");
       const data = await readFile(file, "utf8");
       file = file.replace(".ts", "");
-      const split = file.split("/");
-      const name = split[split.length - 1].replace(".ts", "");
+      file.split("/");
+      split[split.length - 1].replace(".ts", "");
       file = file.replace("app/", "/app/");
 
       const parsedEnums = enumParser.parseEnums(data);

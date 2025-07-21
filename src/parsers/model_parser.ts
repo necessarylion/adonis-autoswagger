@@ -16,8 +16,8 @@ export class ModelParser {
     props: Record<string, any>;
     required: any[];
   } {
-    let props: Record<string, any> = {};
-    let required: any[] = [];
+    const props: Record<string, any> = {};
+    const required: any[] = [];
     // remove empty lines
     fileContent = fileContent
       .replace(/\t/g, "")
@@ -65,13 +65,13 @@ export class ModelParser {
       if (line.startsWith("public ")) {
         if (line.startsWith("public get")) {
           splittedLine = line.split("public get");
-          let splittedLine2 = splittedLine[1].replace(/;/g, "").split(":");
+          splittedLine[1].replace(/;/g, "").split(":");
         } else {
           splittedLine = line.split("public ");
         }
       }
 
-      let splittedLine2 = splittedLine[1].replace(/;/g, "").split(":");
+      const splittedLine2 = splittedLine[1].replace(/;/g, "").split(":");
 
       let field = splittedLine2[0];
       let type = splittedLine2[1] || "";
@@ -83,7 +83,7 @@ export class ModelParser {
 
       if (index > 0 && lines[index - 1].includes("@enum")) {
         const line = lines[index - 1];
-        let enumsFromLine = getBetweenBrackets(line, "enum");
+        const enumsFromLine = getBetweenBrackets(line, "enum");
         if (enumsFromLine !== "") {
           enums = enumsFromLine.split(",");
           example = enums[0];
@@ -92,7 +92,7 @@ export class ModelParser {
 
       if (index > 0 && lines[index - 1].includes("@format")) {
         const line = lines[index - 1];
-        let formatFromLine = getBetweenBrackets(line, "format");
+        const formatFromLine = getBetweenBrackets(line, "format");
         if (formatFromLine !== "") {
           format = formatFromLine;
         }
@@ -100,7 +100,7 @@ export class ModelParser {
 
       if (index > 0 && lines[index - 1].includes("@example")) {
         const line = lines[index - 1];
-        let match = line.match(/example\(([^()]*)\)/g);
+        const match = line.match(/example\(([^()]*)\)/g);
         if (match !== null) {
           const exampleFromLine = match[0].replace("example(", "").replace(")", "");
           example = exampleFromLine;
@@ -224,7 +224,7 @@ export class ModelParser {
         type = "#/components/schemas/Any";
       }
 
-      let prop: Record<string, any> = {};
+      const prop: Record<string, any> = {};
       if (type === "integer" || type === "number") {
         if (example === null || example === "string") {
           example = Math.floor(Math.random() * 1000);

@@ -33,7 +33,7 @@ export class CommentParser {
     let responses: Record<string, any> = {};
     let requestBody: any;
     let parameters: Record<string, any> = {};
-    let headers: Record<string, any> = {};
+    const headers: Record<string, any> = {};
     lines.forEach((line) => {
       if (line.startsWith("@summary")) {
         summary = line.replace("@summary ", "");
@@ -81,8 +81,8 @@ export class CommentParser {
       }
     });
 
-    for (const [key, value] of Object.entries(responses)) {
-      if (typeof headers[key] !== undefined) {
+    for (const key in responses) {
+      if (headers[key]) {
         responses[key]["headers"] = headers[key];
       }
       if (!responses[key]["description"]) {
@@ -113,7 +113,7 @@ export class CommentParser {
     let enums: any[] = [];
 
     if (line.startsWith("@paramUse")) {
-      let use = getBetweenBrackets(line, "paramUse");
+      const use = getBetweenBrackets(line, "paramUse");
       const used = use.split(",");
       let h: any[] = [];
       used.forEach((u) => {
@@ -134,13 +134,13 @@ export class CommentParser {
       required = false;
     }
 
-    let match = line.match("@param([a-zA-Z]*)");
+    const match = line.match("@param([a-zA-Z]*)");
     if (match !== null) {
       where = match[1].toLowerCase();
       line = line.replace(match[0] + " ", "");
     }
 
-    let [param, description, meta] = line.split(" - ");
+    const [param, description, meta] = line.split(" - ");
     if (typeof param === "undefined") {
       return;
     }
@@ -152,7 +152,7 @@ export class CommentParser {
       if (meta.includes("@required")) {
         required = true;
       }
-      let enumsFromMeta = getBetweenBrackets(meta, "enum");
+      const enumsFromMeta = getBetweenBrackets(meta, "enum");
       example = getBetweenBrackets(meta, "example");
       const typeFromMeta = getBetweenBrackets(meta, "type");
       if (typeFromMeta !== "") {
@@ -164,7 +164,7 @@ export class CommentParser {
       }
     }
 
-    let parameter = {
+    const parameter = {
       in: where,
       name: param,
       description: description,
@@ -188,11 +188,11 @@ export class CommentParser {
     let description: string = "";
     let example: any = "";
     let type: string = "string";
-    let enums: any[] = [];
+    const enums: any[] = [];
     const line: string = responseLine.replace("@responseHeader ", "");
-    let [status, name, descriptionFromLine, meta]: string[] = line.split(" - ");
+    const [status, name, descriptionFromLine, meta]: string[] = line.split(" - ");
 
-    if (typeof status === "undefined" || typeof name === "undefined") {
+    if (!status || !name) {
       return null;
     }
 
@@ -201,15 +201,15 @@ export class CommentParser {
     }
 
     if (name.includes("@use")) {
-      let use = getBetweenBrackets(name, "use");
+      const use = getBetweenBrackets(name, "use");
       const used = use.split(",");
-      let header = {};
+      const header = {};
       used.forEach((u) => {
         if (typeof this.options.common.headers[u] === "undefined") {
           return;
         }
         const common = this.options.common.headers[u];
-        header = { ...header, ...common };
+        Object.assign(header, common);
       });
 
       return {
@@ -240,7 +240,7 @@ export class CommentParser {
       }
     }
 
-    let header = {
+    const header = {
       schema: { type: type, example: example },
       description: description,
     };
@@ -257,9 +257,9 @@ export class CommentParser {
   }
 
   #parseResponseBody(responseLine: string): Record<string, any> {
-    let responses: Record<string, any> = {};
+    const responses: Record<string, any> = {};
     const line: string = responseLine.replace("@responseBody ", "");
-    let [status, res, description]: string[] = line.split(" - ");
+    const [status, res, description]: string[] = line.split(" - ");
     if (typeof status === "undefined") return;
     responses[status] = this.#parseBody(res, "responseBody");
     responses[status]["description"] = description;
@@ -271,18 +271,18 @@ export class CommentParser {
   ): Record<string, any> | undefined {
     const line: string = rawLine.replace("@requestFormDataBody ", "");
     let json: Record<string, any> = {},
-      required: any[] = [];
+    const required: any[] = [];
     const isJson: boolean = isJSONString(line);
     if (!isJson) {
       // try to get json from reference
-      let rawRef = line.substring(line.indexOf("<") + 1, line.lastIndexOf(">"));
+      const rawRef = line.substring(line.indexOf("<") + 1, line.lastIndexOf(">"));
 
       const cleandRef = rawRef.replace("[]", "");
       if (cleandRef === "") {
         return;
       }
       const parsedRef = this.exampleGenerator.parseRef(line, true);
-      let props: any[] = [];
+      const props: any[] = [];
       const ref = this.exampleGenerator.schemas[cleandRef];
       const ks: any[] = [];
       if (ref.required && Array.isArray(ref.required))
@@ -314,7 +314,7 @@ export class CommentParser {
       }
     } else {
       json = JSON.parse(line);
-      for (let key in json) {
+      for (const key in json) {
         if (json[key].required === "true") {
           required.push(key);
         }
@@ -336,7 +336,7 @@ export class CommentParser {
   }
 
   #parseBody(rawLine: string, type: string): Record<string, any> {
-    let line: string = rawLine.replace(`@${type} `, "");
+    const line: string = rawLine.replace(`@${type} `, "");
 
     const isJson: boolean = isJSONString(line);
 
@@ -434,7 +434,7 @@ export class CommentParser {
     file: string,
     action: string
   ): Promise<Record<string, any>> {
-    let annotations: Record<string, any> = {};
+    const annotations: Record<string, any> = {};
     let newdata: string = "";
     if (typeof file === "undefined") return;
 
@@ -451,7 +451,7 @@ export class CommentParser {
           }
         }
         this.parsedFiles[file] = newdata;
-      } catch (e) {
+      } catch {
         console.error("\x1b[31m✗ File not found\x1b[0m", file);
       }
     }

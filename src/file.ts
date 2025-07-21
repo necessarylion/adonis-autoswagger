@@ -93,11 +93,10 @@ export class FileService {
    * @returns
    */
   async getFiles(dir: string, files_?: string[]): Promise<string[]> {
-    const fs: any = require("fs");
     files_ = files_ || [];
-    var files: string[] = await fs.readdirSync(dir);
-    for (let i in files) {
-      var name: string = dir + "/" + files[i];
+    const files: string[] = await fs.readdirSync(dir);
+    for (const i in files) {
+      const name: string = dir + "/" + files[i];
       if (fs.statSync(name).isDirectory()) {
         await this.getFiles(name, files_);
       } else {

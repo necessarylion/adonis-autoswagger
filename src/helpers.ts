@@ -10,9 +10,9 @@ import { camelCase, startCase } from "lodash";
  * @returns
  */
 export function mergeParams(initial: any, custom: any) {
-  let merge = Object.assign(initial, custom);
-  let params: any[] = [];
-  for (const [key, value] of Object.entries(merge)) {
+  const merge = Object.assign(initial, custom);
+  const params: any[] = [];
+  for (const [, value] of Object.entries(merge)) {
     params.push(value);
   }
 

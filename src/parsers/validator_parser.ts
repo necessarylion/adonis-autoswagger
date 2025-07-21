@@ -124,7 +124,7 @@ export class ValidatorParser {
     const obj: Record<string, any> = {};
     const required: any[] = [];
     for (const property of json["properties"]) {
-      let meta = this.#getMetaFromValidations(property["validations"], refs);
+      const meta = this.#getMetaFromValidations(property["validations"], refs);
 
       const type = property["type"];
       const field = property["fieldName"];

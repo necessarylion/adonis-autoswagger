@@ -13,9 +13,9 @@ export default class ExampleGenerator {
    */
   jsonToRef(json: any) {
     const jsonObjectIsArray = Array.isArray(json);
-    let out = {};
-    let outArr = [];
-    for (let [k, v] of Object.entries(json)) {
+    const out = {};
+    const outArr = [];
+    for (const [k, v] of Object.entries(json)) {
       if (typeof v === "object") {
         if (!Array.isArray(v)) {
           v = this.jsonToRef(v);
@@ -41,7 +41,7 @@ export default class ExampleGenerator {
    * @returns
    */
   parseRef(line: string, exampleOnly = false) {
-    let rawRef = line.substring(line.indexOf("<") + 1, line.lastIndexOf(">"));
+    const rawRef = line.substring(line.indexOf("<") + 1, line.lastIndexOf(">"));
 
     if (rawRef === "") {
       if (exampleOnly) {
@@ -96,7 +96,9 @@ export default class ExampleGenerator {
     let app = {};
     try {
       app = JSON.parse("{" + append + "}");
-    } catch {}
+    } catch {
+      // ignore
+    }
 
     const cleanedRef = rawRef.replace("[]", "");
 
@@ -107,7 +109,7 @@ export default class ExampleGenerator {
         app
       );
     } catch (e) {
-      console.error("Error", cleanedRef);
+      console.error("Error", cleanedRef, e);
     }
 
     const { dataName, metaName } = this.getPaginatedData(line);
@@ -196,7 +198,7 @@ export default class ExampleGenerator {
     parent = "",
     deepRels = [""]
   ) {
-    let props = {};
+    const props = {};
     if (!this.schemas[schema]) {
       return props;
     }
@@ -204,9 +206,9 @@ export default class ExampleGenerator {
       return this.schemas[schema].example;
     }
 
-    let properties = this.schemas[schema].properties;
-    let include = inc.toString().split(",");
-    let exclude = exc.toString().split(",");
+    const properties = this.schemas[schema].properties;
+    const include = inc.toString().split(",");
+    const exclude = exc.toString().split(",");
     let only = onl.toString().split(",");
     only = only.length === 1 && only[0] === "" ? [] : only;
 
@@ -376,7 +378,7 @@ export default class ExampleGenerator {
    * @param type string
    * @returns
    */
-  exampleByField(field: any, type: string = "") {
+  exampleByField(field: any) {
     const ex = {
       datetime: "2021-03-23T16:13:08.489+01:00",
       DateTime: "2021-03-23T16:13:08.489+01:00",

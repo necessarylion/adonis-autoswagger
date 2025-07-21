@@ -215,7 +215,7 @@ class AutoSwagger {
       sscheme = this.options.defaultSecurityScheme;
     }
 
-    let securities: Record<string, any> = {
+    const securities: Record<string, any> = {
       auth: { [sscheme]: ["access"] },
       "auth:api": { [sscheme]: ["access"] },
       ...this.options.authMiddlewares
@@ -225,7 +225,7 @@ class AutoSwagger {
         .reduce((acc, val) => ({ ...acc, ...val }), {}),
     };
 
-    let globalTags: any[] = [];
+    const globalTags: any[] = [];
 
     if (this.options.debug) {
       console.log("Route annotations:");
@@ -247,7 +247,7 @@ class AutoSwagger {
       }
       if (ignore) continue;
 
-      let security: any[] = [];
+      const security: any[] = [];
       const responseCodes: Record<string, any> = {
         GET: "200",
         POST: "201",
@@ -277,7 +277,7 @@ class AutoSwagger {
         });
       });
 
-      let { sourceFile, action, customAnnotations, operationId } =
+      const { sourceFile, action, customAnnotations, operationId } =
         await this.getDataBasedOnAdonisVersion(route);
 
       route.methods.forEach((method: string) => {
@@ -389,8 +389,8 @@ class AutoSwagger {
 
         action = startCase(action);
 
-        const sf: string = sourceFile.split("/").at(-1).replace(".ts", "");
-        let m: Record<string, any> = {
+        sourceFile.split("/").at(-1).replace(".ts", "");
+        const m: Record<string, any> = {
           summary: `${summary}${action !== "" ? ` ${action}` : "route"}`,
           description:
             description + "\n\n _" + sourceFile + "_ - **" + action + "**",
@@ -421,7 +421,7 @@ class AutoSwagger {
     const usedTags = _.uniq(
       Object.entries(paths)
         .map(
-          ([p, val]: [string, Record<string, any>]) =>
+          ([, val]: [string, Record<string, any>]) =>
             Object.entries(val)[0][1].tags
         )
         .flat()
@@ -437,10 +437,10 @@ class AutoSwagger {
    * @returns
    */
   private async getDataBasedOnAdonisVersion(route: AdonisRoute) {
-    let sourceFile: string = "";
-    let action: string = "";
-    let customAnnotations: Record<string, any>;
-    let operationId: string = "";
+    let sourceFile = "";
+    let action = "";
+    let customAnnotations: Record<string, any> = {};
+    let operationId = "";
     if (
       route.meta.resolvedHandler !== null &&
       route.meta.resolvedHandler !== undefined

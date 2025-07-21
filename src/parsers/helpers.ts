@@ -1,5 +1,3 @@
-import { camelCase, startCase } from "lodash";
-
 /**
  * Check if a string is a valid JSON
  * @param str string
@@ -9,7 +7,7 @@ export function isJSONString(str: string): boolean {
   try {
     JSON.parse(str);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -21,7 +19,7 @@ export function isJSONString(str: string): boolean {
  * @returns
  */
 export function getBetweenBrackets(value: string, start: string) {
-  let match = value.match(new RegExp(start + "\\(([^()]*)\\)", "g"));
+  const match = value.match(new RegExp(start + "\\(([^()]*)\\)", "g"));
 
   if (match !== null) {
     let m = match[0].replace(start + "(", "").replace(")", "");

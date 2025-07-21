@@ -12,7 +12,7 @@ export class InterfaceParser {
   }
 
   objToExample(obj: Record<string, any>): Record<string, any> {
-    let example: Record<string, any> = {};
+    const example: Record<string, any> = {};
     Object.entries(obj).map(([key, value]) => {
       if (typeof value === "object") {
         example[key] = this.objToExample(value);
@@ -159,8 +159,8 @@ export class InterfaceParser {
     }
 
     for (const [name, definition] of interfaceDefinitions) {
-      let allProperties = {};
-      let requiredFields = new Set(definition.required);
+      const allProperties = {};
+      const requiredFields = new Set(definition.required);
 
       for (const baseType of definition.extends) {
         const baseSchema = this.schemas[baseType];
@@ -238,8 +238,8 @@ export class InterfaceParser {
       type = type.replace(/[;\r\n]/g, "").trim();
     }
 
-    let property: any = { type: type };
-    let notRequired = field.includes("?");
+    const property: any = { type: type };
+    const notRequired = field.includes("?");
     property.nullable = notRequired;
 
     if (typeof type === "string" && type.toLowerCase() === "datetime") {
