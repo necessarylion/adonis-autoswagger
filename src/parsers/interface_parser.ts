@@ -185,7 +185,10 @@ export class InterfaceParser {
           parsedProperties[key] = this.parseType(value, key);
         }
         if (definition.examples[key]) {
-          parsedProperties[key].example = definition.examples[key];
+          let example = definition.examples[key]
+          if (example === 'true') example = true
+          if (example === 'false') example = false
+          parsedProperties[key].example = example;
         }
       }
 
@@ -193,11 +196,10 @@ export class InterfaceParser {
         type: "object",
         properties: parsedProperties,
         required: Array.from(requiredFields),
-        description: `${name}${
-          definition.extends.length
-            ? ` extends ${definition.extends.join(", ")}`
-            : ""
-        } (Interface)`,
+        description: `${name}${definition.extends.length
+          ? ` extends ${definition.extends.join(", ")}`
+          : ""
+          } (Interface)`,
       };
 
       if (schema.required.length === 0) {
@@ -251,7 +253,7 @@ export class InterfaceParser {
       property.format = "date";
       property.example = "2021-03-23";
     } else {
-      const standardTypes = ["string", "number", "boolean", "integer"];
+      const standardTypes = ["string", "number", "boolean", "integer", "any"];
       if (
         typeof type === "string" &&
         !standardTypes.includes(type.toLowerCase())

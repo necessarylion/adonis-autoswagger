@@ -99,7 +99,7 @@ export class UIService {
    * @param proxyUrl string
    * @returns
    */
-  scalar(url: string, proxyUrl: string = "https://proxy.scalar.com") {
+  scalar(url: string, proxyUrl: string = "https://proxy.scalar.com", options) {
     return `
       <!doctype html>
       <html>
@@ -114,11 +114,19 @@ export class UIService {
           </style>
         </head>
         <body>
-          <script
-            id="api-reference"
-            data-url="${url}"
-            data-proxy-url="${proxyUrl}"></script>
+          <div id="app"></div>
           <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+          <script>
+            Scalar.createApiReference('#app', {
+              persistAuth: ${options?.persistAuthorization},
+              url: '${url}',
+              proxyUrl: '${proxyUrl}',
+              expandAllResponses: true,
+              authentication: {
+                preferredSecurityScheme: '${options?.defaultSecurityScheme}',
+              }
+            })
+          </script>
         </body>
       </html>
     `;

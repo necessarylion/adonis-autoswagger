@@ -73,7 +73,7 @@ export class ModelParser {
 
       let splittedLine2 = splittedLine[1].replace(/;/g, "").split(":");
 
-      let field = splittedLine2[0];
+      let field = splittedLine2[0].replace('?', '');
       let type = splittedLine2[1] || "";
       type = type.trim();
       let enums: any[] = [];

@@ -43,7 +43,7 @@ class AutoSwagger {
   }
 
   public scalar(url: string, proxyUrl: string = "https://proxy.scalar.com") {
-    return this.uiService.scalar(url, proxyUrl);
+    return this.uiService.scalar(url, proxyUrl, this.options);
   }
 
   public stoplight(url: string, theme: "light" | "dark" = "dark") {
@@ -142,20 +142,20 @@ class AutoSwagger {
         securitySchemes: this.options.securitySchemes
           ? this.options.securitySchemes
           : {
-              BearerAuth: {
-                type: "http",
-                scheme: "bearer",
-              },
-              BasicAuth: {
-                type: "http",
-                scheme: "basic",
-              },
-              ApiKeyAuth: {
-                type: "apiKey",
-                in: "header",
-                name: "X-API-Key",
-              },
+            BearerAuth: {
+              type: "http",
+              scheme: "bearer",
             },
+            BasicAuth: {
+              type: "http",
+              scheme: "basic",
+            },
+            ApiKeyAuth: {
+              type: "apiKey",
+              in: "header",
+              name: "X-API-Key",
+            },
+          },
         schemas: this.schemas,
       },
       paths: {},
@@ -303,7 +303,7 @@ class AutoSwagger {
           if (
             typeof responses[responseCodes[method]] !== "undefined" &&
             typeof responses[responseCodes[method]]["description"] !==
-              "undefined"
+            "undefined"
           ) {
             description = responses[responseCodes[method]]["description"];
           }
