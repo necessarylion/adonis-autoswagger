@@ -394,7 +394,7 @@ class AutoSwagger {
     const schema = requestBody?.content?.["application/json"]?.schema?.["$ref"].split('/').pop();
     if (!schema) return []
     const properties = this.schemas[schema].properties
-    const required = this.schemas[schema].required
+    const required = this.schemas[schema].required ?? []
     const parameters = []
     try {
       for (const key in properties) {
@@ -406,7 +406,7 @@ class AutoSwagger {
           schema: data,
         })
       }
-    } catch {
+    } catch (e) {
       return []
     }
     return parameters
