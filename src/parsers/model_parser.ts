@@ -74,6 +74,10 @@ export class ModelParser {
       let splittedLine2 = splittedLine[1].replace(/;/g, "").split(":");
 
       let field = splittedLine2[0].replace('?', '');
+      if (index > 0 && lines[index - 1].includes("@serializeAs")) {
+        const line = lines[index - 1];
+        field = getBetweenBrackets(line, "serializeAs");
+      }
       let type = splittedLine2[1] || "";
       type = type.trim();
       let enums: any[] = [];

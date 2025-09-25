@@ -41,7 +41,9 @@ export class SchemaService {
   async getSchemas(): Promise<Record<string, any>> {
     let schemas: Record<string, any> = {
       Any: {
-        description: "Any JSON object not defined as schema",
+        type: 'any',
+        description: "Any value",
+        examples: [true, false, 1, "foo", { foo: "bar" }],
       },
     };
 

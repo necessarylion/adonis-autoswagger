@@ -96,7 +96,7 @@ export default class ExampleGenerator {
     let app = {};
     try {
       app = JSON.parse("{" + append + "}");
-    } catch {}
+    } catch { }
 
     const cleanedRef = rawRef.replace("[]", "");
 
@@ -141,7 +141,6 @@ export default class ExampleGenerator {
         content: {
           "application/json": {
             schema: paginated === "true" ? paginatedSchema : normalArraySchema,
-            example: paginated === "true" ? paginatedEx : [ex],
           },
         },
       };
@@ -156,7 +155,6 @@ export default class ExampleGenerator {
           schema: {
             $ref: "#/components/schemas/" + rawRef,
           },
-          example: ex,
         },
       },
     };

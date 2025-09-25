@@ -18,7 +18,7 @@ pnpm i @necessarylion/adonis-autoswagger #using pnpm
 
 ---
 
-*This is a fork of [adonis-autoswagger](https://github.com/ad-on-is/adonis-autoswagger) with some additional features.*
+_This is a fork of [adonis-autoswagger](https://github.com/ad-on-is/adonis-autoswagger) with some additional features._
 
 ## ⭐️ Features
 
@@ -467,10 +467,10 @@ Automatically generates swagger schema-descriptions based on your validators.
 ```ts
 export const adminLogin = vine.compile(
   vine.object({
-    email: vine.string().trim().example('admin@laconcept.de'),
-    password: vine.string().trim().example('password'),
+    email: vine.string().trim().example("admin@laconcept.de"),
+    password: vine.string().trim().example("password"),
   })
-)
+);
 ```
 
 ##### Create custom validators with vine
@@ -478,38 +478,41 @@ export const adminLogin = vine.compile(
 ```ts
 // start/validators/example.ts
 
-import vine, { VineNumber, VineString, VineNativeEnum } from '@vinejs/vine'
-import { EnumLike } from '@vinejs/vine/types'
+import vine, { VineNumber, VineString, VineNativeEnum } from "@vinejs/vine";
+import { EnumLike } from "@vinejs/vine/types";
 
 type Options = {
-  example: any
-}
+  example: any;
+};
 
-declare module '@vinejs/vine' {
+declare module "@vinejs/vine" {
   interface VineString {
-    example(example: string): this
+    example(example: string): this;
   }
   interface VineNumber {
-    example(example: number): this
+    example(example: number): this;
   }
   interface VineNativeEnum<Values extends EnumLike> {
-    example(example: string): this
+    example(example: string): this;
   }
 }
 
 export const exampleRule = vine.createRule((_: unknown, opt: Options) => {
-  return opt.example
-})
+  return opt.example;
+});
 
-VineString.macro('example', function (this: VineString, example: string) {
-  return this.use(exampleRule({ example }))
-})
-VineNumber.macro('example', function (this: VineNumber, example: number) {
-  return this.use(exampleRule({ example }))
-})
-VineNativeEnum.macro('example', function (this: VineNativeEnum<any>, example: string) {
-  return this.use(exampleRule({ example }))
-})
+VineString.macro("example", function (this: VineString, example: string) {
+  return this.use(exampleRule({ example }));
+});
+VineNumber.macro("example", function (this: VineNumber, example: number) {
+  return this.use(exampleRule({ example }));
+});
+VineNativeEnum.macro(
+  "example",
+  function (this: VineNativeEnum<any>, example: string) {
+    return this.use(exampleRule({ example }));
+  }
+);
 ```
 
 ##### Import in `adonisrc.ts` preloads
@@ -578,6 +581,9 @@ Specify a format for that field, i.e. uuid, email, binary, etc...
 
 **@example(foo bar)**
 Use this field to provide own example values for specific fields
+
+**@serializeAs(foo)**
+Use this field to serialize for specific fields
 
 **@props({"minLength": 10, "foo": "bar"})**
 Use this field to provide additional properties to a field, like minLength, maxLength, etc. Needs to bee valid JSON.
