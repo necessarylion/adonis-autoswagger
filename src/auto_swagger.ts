@@ -356,6 +356,11 @@ class AutoSwagger {
 
         if (method !== "GET" && method !== "DELETE") {
           m["requestBody"] = requestBody;
+        } else {
+          m["parameters"] = [
+            ...m["parameters"],
+            ...this.requestBodyToParameters(requestBody),
+          ]
         }
 
         pattern = pattern.slice(1);
@@ -384,6 +389,29 @@ class AutoSwagger {
     docs.paths = paths;
     return docs;
   }
+
+  private requestBodyToParameters(requestBody: Record<string, any>) {
+    const schema = requestBody?.content?.["application/json"]?.schema?.["$ref"].split('/').pop();
+    if (!schema) return []
+    const properties = this.schemas[schema].properties
+    const required = this.schemas[schema].required
+    const parameters = []
+    try {
+      for (const key in properties) {
+        const data = properties[key]
+        parameters.push({
+          in: 'query',
+          name: key,
+          required: required.includes(key),
+          schema: data,
+        })
+      }
+    } catch {
+      return []
+    }
+    return parameters
+  }
+
   private async getDataBasedOnAdonisVersion(route: AdonisRoute) {
     let sourceFile: string = "";
     let action: string = "";

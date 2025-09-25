@@ -1,5 +1,13 @@
 export const scalarCustomCss = `
 /* basic theme */
+.property-name {
+  color: var(--scalar-color-orange);
+}
+
+.request-body .property-name {
+  color: var(--scalar-color-blue);
+}
+
 .light-mode {
   --theme-background-1: #fff;
   --theme-background-2: #fafaf9;
