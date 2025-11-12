@@ -1,6 +1,6 @@
 {
   "name": "@necessarylion/adonis-autoswagger",
-  "version": "0.0.11",
+  "version": "0.0.14",
   "description": "Auto-Generate swagger docs for AdonisJS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

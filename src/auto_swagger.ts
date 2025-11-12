@@ -393,8 +393,8 @@ class AutoSwagger {
   private requestBodyToParameters(requestBody: Record<string, any>) {
     const schema = requestBody?.content?.["application/json"]?.schema?.["$ref"].split('/').pop();
     if (!schema) return []
-    const properties = this.schemas[schema].properties
-    const required = this.schemas[schema].required ?? []
+    const properties = this.schemas[schema]?.properties ?? {}
+    const required = this.schemas[schema]?.required ?? []
     const parameters = []
     try {
       for (const key in properties) {

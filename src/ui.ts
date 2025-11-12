@@ -118,9 +118,8 @@ export class UIService {
           <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
           <script>
             Scalar.createApiReference('#app', {
-              persistAuth: ${options?.persistAuthorization},
+              persistAuth: true,
               url: '${url}',
-              proxyUrl: '${proxyUrl}',
               expandAllResponses: true,
               authentication: {
                 preferredSecurityScheme: '${options?.defaultSecurityScheme}',

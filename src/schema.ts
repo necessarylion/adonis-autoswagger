@@ -105,7 +105,7 @@ export class SchemaService {
       console.log(
         "**You are probably using 'node ace serve --hmr', which is not supported yet. Use 'node ace serve --watch' instead.**"
       );
-      console.error(e.message);
+      console.error(e);
     }
 
     return validators;
