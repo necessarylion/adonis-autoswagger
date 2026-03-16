@@ -178,7 +178,20 @@ export class SchemaService {
     if (existsSync(p6)) {
       p = p6;
     }
-    const files = await this.fileService.getFiles(p, []);
+    const files = await this.fileService.getFiles(p, [], this.options.models?.ignores);
+ 
+    const modelPaths = this.options.models?.paths ?? []
+    for(const modelPath of modelPaths) {
+      files.push(...await this.fileService.getFiles(
+          path.join(this.options.appPath, modelPath), 
+          [],
+          this.options.models?.ignores
+        )
+      )
+    }
+
+    console.log(files)
+    
     const readFile = util.promisify(fs.readFile);
     if (this.options.debug) {
       console.log("Found model files", files);
@@ -214,7 +227,7 @@ export class SchemaService {
    */
   async getInterfaces(): Promise<Record<string, any>> {
     let interfaces: Record<string, any> = {
-      ...ExampleInterfaces.paginationInterface(),
+      ...ExampleInterfaces.paginationInterface(this.options.snakeCase),
     };
     let p: string = path.join(this.options.appPath, "Interfaces");
     let p6: string = path.join(this.options.appPath, "interfaces");

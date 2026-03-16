@@ -21,6 +21,11 @@ export interface options {
   productionEnv?: string;
   authMiddlewares?: string[];
   defaultSecurityScheme?: string;
+  pagniationData?: Record<string, any>;
+  models?: {
+    paths: string[]
+    ignores: string[]
+  }
 }
 
 export interface common {

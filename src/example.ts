@@ -435,7 +435,38 @@ export abstract class ExampleInterfaces {
    * Pagination interface
    * @returns
    */
-  public static paginationInterface() {
+  public static paginationInterface(snakeCase: boolean = false): Record<string, any> {
+    if (snakeCase) {
+      return {
+        PaginationMeta: {
+          type: "object",
+          properties: {
+            total: { type: "number", example: 100, nullable: false },
+            page: { type: "number", example: 2, nullable: false },
+            per_page: { type: "number", example: 10, nullable: false },
+            current_page: { type: "number", example: 3, nullable: false },
+            last_page: { type: "number", example: 10, nullable: false },
+            first_page: { type: "number", example: 1, nullable: false },
+            last_page_url: {
+              type: "string",
+              example: "/?page=10",
+              nullable: false,
+            },
+            first_page_url: {
+              type: "string",
+              example: "/?page=1",
+              nullable: false,
+            },
+            next_page_url: { type: "string", example: "/?page=6", nullable: false },
+            previous_page_url: {
+              type: "string",
+              example: "/?page=5",
+              nullable: false,
+            },
+          },
+        },
+      };
+    }
     return {
       PaginationMeta: {
         type: "object",
