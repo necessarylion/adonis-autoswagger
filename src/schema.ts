@@ -189,8 +189,6 @@ export class SchemaService {
         )
       )
     }
-
-    console.log(files)
     
     const readFile = util.promisify(fs.readFile);
     if (this.options.debug) {

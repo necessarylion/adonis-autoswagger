@@ -130,7 +130,6 @@ export class ValidatorParser {
       const field = property["fieldName"];
 
       if (type === "object") {
-        console.log(field, property);
         obj[field] = { type: "object", ...this.#parseSchema(property, refs) };
       } else {
         // if array
