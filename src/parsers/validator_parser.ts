@@ -147,15 +147,17 @@ export class ValidatorParser {
               property["each"]["validations"],
               refs
             );
+            const subType = this.#getType(property["each"]["subtype"])
             obj[field] = {
               type: "array",
               items: {
                 type: this.#getType(property["each"]["type"]),
                 ...meta,
+                format: subType === 'multipartFile' ? 'binary': undefined,
                 example:
                   meta.example ??
                   meta.minimum ??
-                  this.exampleGenerator.exampleByType("number"),
+                  this.exampleGenerator.exampleByType(subType),
               },
             };
           }

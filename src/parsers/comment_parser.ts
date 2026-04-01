@@ -293,18 +293,31 @@ export class CommentParser {
         }
         ks.push(key);
         if (value["required"]) required.push(key);
-        props.push({
-          [key]: {
-            type:
-              typeof value["type"] === "undefined" ? "string" : value["type"],
-            format:
-              typeof value["format"] === "undefined"
-                ? "string"
-                : value["format"],
-            example: parsedRef[key],
-            enum: value["enum"]
-          },
-        });
+        const type = typeof value["type"] === "undefined" ? "string" : value["type"]
+        if (type !== 'array') {
+          props.push({
+            [key]: {
+              type,
+              format:
+                typeof value["format"] === "undefined"
+                  ? "string"
+                  : value["format"],
+              example: parsedRef[key],
+              enum: value["enum"]
+            },
+          });
+        } else {
+          props.push({
+            [`${key}[]`]: {
+              type,
+              example: '',
+              items: {
+                type: value["items"]["type"],
+                format: value["items"]["format"],
+              }
+            }
+          })
+        }
       });
       const properties = props.reduce((acc, curr) => ({ ...acc, ...curr }), {});
       const appends = Object.keys(parsedRef).filter((k) => !ks.includes(k));
