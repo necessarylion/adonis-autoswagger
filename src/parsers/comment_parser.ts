@@ -301,6 +301,8 @@ export class CommentParser {
               typeof value["format"] === "undefined"
                 ? "string"
                 : value["format"],
+            example: parsedRef[key],
+            enum: value["enum"]
           },
         });
       });
