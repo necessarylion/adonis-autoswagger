@@ -65,12 +65,17 @@ export class SchemaService {
    */
   async getValidators(): Promise<Record<string, any>> {
     const validators: Record<string, any> = {};
-    let p6: string = path.join(this.options.appPath, "validators");
+    // support both "validators" and "Validators" folder names
+    let p6: string = ["validators", "Validators"]
+      .map((dir) => path.join(this.options.appPath, dir))
+      .find((p) => existsSync(p)) ?? path.join(this.options.appPath, "validators");
 
     if (typeof this.customPaths["#validators"] !== "undefined") {
       // it's v6
       p6 = p6.replaceAll("app/validators", this.customPaths["#validators"]);
       p6 = p6.replaceAll("app\\validators", this.customPaths["#validators"]);
+      p6 = p6.replaceAll("app/Validators", this.customPaths["#validators"]);
+      p6 = p6.replaceAll("app\\Validators", this.customPaths["#validators"]);
     }
 
     if (!existsSync(p6)) {
