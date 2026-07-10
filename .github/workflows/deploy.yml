@@ -7,16 +7,18 @@ on:
 jobs:
   Deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # required for npm trusted publishing (OIDC)
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          registry-url: "https://registry.npmjs.com"
+          # Node 24 ships npm >= 11.5.1, required for OIDC trusted publishing
+          node-version: "24.x"
+          registry-url: "https://registry.npmjs.org"
       - uses: pnpm/action-setup@v4
       - run: pnpm install
       - run: pnpm build
-      - run: git config user.email "deploy@github" && git config user.name "GitHub Action"
-      - run: pnpm publish --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # npm (not pnpm) handles the OIDC exchange; no token needed
+      - run: npm publish --access public
