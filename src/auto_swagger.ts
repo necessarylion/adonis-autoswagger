@@ -300,7 +300,9 @@ class AutoSwagger {
             }
             delete responses[responseCodes[method]]["summary"];
           }
+          // An own @description wins. The response text is only the fallback.
           if (
+            description === "" &&
             typeof responses[responseCodes[method]] !== "undefined" &&
             typeof responses[responseCodes[method]]["description"] !==
             "undefined"
