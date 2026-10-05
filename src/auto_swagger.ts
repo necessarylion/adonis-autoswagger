@@ -405,6 +405,7 @@ class AutoSwagger {
           in: 'query',
           name: key,
           required: required.includes(key),
+          description: data.description,
           schema: data,
         })
       }

@@ -131,6 +131,7 @@ export class ValidatorParser {
 
       if (type === "object") {
         obj[field] = { type: "object", ...this.#parseSchema(property, refs) };
+        if (meta.description) obj[field].description = meta.description;
       } else {
         // if array
         if (type === "array") {
@@ -143,7 +144,7 @@ export class ValidatorParser {
               },
             };
           } else {
-            const meta = this.#getMetaFromValidations(
+            const itemMeta = this.#getMetaFromValidations(
               property["each"]["validations"],
               refs
             );
@@ -151,19 +152,20 @@ export class ValidatorParser {
             obj[field] = {
               type: "array",
               items: {
-                type: this.#getType(property["each"]["type"]),
-                ...meta,
+                type: this.#getType(property["each"]["type"], property["each"]["subtype"]),
+                ...itemMeta,
                 format: subType === 'multipartFile' ? 'binary': undefined,
                 example:
-                  meta.example ??
-                  meta.minimum ??
+                  itemMeta.example ??
+                  itemMeta.minimum ??
                   this.exampleGenerator.exampleByType(subType),
               },
             };
           }
+          if (meta.description) obj[field].description = meta.description;
         } else {
           obj[field] = {
-            type: this.#getType(type),
+            type: this.#getType(type, property["subtype"]),
             example:
               meta.example ??
               meta.minimum ??
@@ -179,9 +181,10 @@ export class ValidatorParser {
     return result;
   }
 
-  #getType(type: string) {
+  #getType(type: string, subtype?: string) {
     if (type == "literal") {
-      return "string";
+      // vine says "literal" for every plain value and keeps the real type in subtype
+      return subtype === "number" || subtype === "boolean" ? subtype : "string";
     }
     return type;
   }
@@ -195,6 +198,7 @@ export class ValidatorParser {
     enum?: any;
     pattern?: string;
     example?: any;
+    description?: string;
   } {
     let meta: {
       minimum?: number;
@@ -202,8 +206,15 @@ export class ValidatorParser {
       enum?: any;
       pattern?: string;
       example?: any;
+      description?: string;
     } = {};
     for (const validation of validations) {
+      if (refs[validation["ruleFnId"]].options?.description) {
+        meta = {
+          ...meta,
+          description: refs[validation["ruleFnId"]].options.description,
+        };
+      }
       if (refs[validation["ruleFnId"]].options?.example) {
         meta = {
           ...meta,
